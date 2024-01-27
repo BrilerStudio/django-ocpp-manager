@@ -19,6 +19,8 @@ from django.contrib import admin
 from django.urls import include, path, re_path
 from drf_yasg import openapi
 from drf_yasg.views import get_schema_view
+from rest_framework.authentication import SessionAuthentication
+from rest_framework.permissions import IsAuthenticated, IsAdminUser
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -39,6 +41,13 @@ schema_view = get_schema_view(
         default_version='v1',
     ),
     public=True,
+    authentication_classes=[
+        SessionAuthentication,
+    ],
+    permission_classes=[
+        IsAuthenticated,
+        IsAdminUser,
+    ],
 )
 
 urlpatterns += [
