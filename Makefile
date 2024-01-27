@@ -5,19 +5,6 @@ BACKUPS_PATH := ./data/backups/postgres
 
 install-dev:
 	pip install -r requirements.txt
-	pre-commit install
-
-reformat:
-	black .
-
-lint:
-	ruff check .
-
-lint-n-fix:
-	ruff check . --fix
-
-pretty:
-	pre-commit run --all-files
 
 run:
 	docker-compose up -d --force-recreate
