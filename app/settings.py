@@ -45,19 +45,16 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'livereload',
     'django.contrib.staticfiles',
     'drf_yasg',
     'corsheaders',
     'debug_toolbar',
     'djangoql',
     'manager',
-    'charge_point_node',
 ]
 
 if not DEBUG:
     INSTALLED_APPS.remove('debug_toolbar')
-    INSTALLED_APPS.remove('livereload')
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -70,12 +67,10 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'debug_toolbar.middleware.DebugToolbarMiddleware',
-    'livereload.middleware.LiveReloadScript',
 ]
 
 if not DEBUG:
     MIDDLEWARE.remove('debug_toolbar.middleware.DebugToolbarMiddleware')
-    MIDDLEWARE.remove('livereload.middleware.LiveReloadScript')
 
 X_FRAME_OPTIONS = 'SAMEORIGIN'
 SILENCED_SYSTEM_CHECKS = ['security.W019']

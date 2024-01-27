@@ -1,20 +1,16 @@
 from ocpp.v16.enums import AuthorizationStatus
 
-from charge_point_node.models.stop_transaction import StopTransactionEvent
+from manager.models import Transaction
+from manager.ocpp_events.stop_transaction import StopTransactionEvent
 from manager.ocpp_models.tasks.stop_transaction import StopTransactionTask
-from manager.services.transactions import update_transaction
-from manager.views.transactions import UpdateTransactionView
 
 
 async def process_stop_transaction(
-    session,
-    event: StopTransactionEvent,
+        event: StopTransactionEvent,
 ) -> StopTransactionTask:
-    view = UpdateTransactionView(
-        transaction_id=event.payload.transaction_id,
+    await Transaction.objects.filter(transaction_id=event.payload.transaction_id).aupdate(
         meter_stop=event.payload.meter_stop,
     )
-    await update_transaction(session, event.payload.transaction_id, view)
 
     return StopTransactionTask(
         message_id=event.message_id,

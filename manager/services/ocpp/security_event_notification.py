@@ -1,9 +1,8 @@
 from manager.ocpp_models.tasks.security_event_notification import SecurityEventNotificationTask
-from charge_point_node.models.security_event_notification import SecurityEventNotificationEvent
+from manager.ocpp_events.security_event_notification import SecurityEventNotificationEvent
 
 
 async def process_security_event_notification(
-        session,
         event: SecurityEventNotificationEvent
 ) -> SecurityEventNotificationTask:
     # Do some logic here

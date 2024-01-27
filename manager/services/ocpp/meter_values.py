@@ -1,9 +1,8 @@
 from manager.ocpp_models.tasks.meter_values import MeterValuesTask
-from charge_point_node.models.meter_values import MeterValuesEvent
+from manager.ocpp_events.meter_values import MeterValuesEvent
 
 
 async def process_meter_values(
-        session,
         event: MeterValuesEvent
 ) -> MeterValuesTask:
 

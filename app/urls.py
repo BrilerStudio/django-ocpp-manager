@@ -24,8 +24,7 @@ from rest_framework.permissions import IsAuthenticated, IsAdminUser
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('__debug__/', include('debug_toolbar.urls')),
-    path(r'^i18n/', include('django.conf.urls.i18n')),
+    path('i18n/', include('django.conf.urls.i18n')),
     path('api/v1/', include('api_v1.urls', 'api_v1')),
 ]
 

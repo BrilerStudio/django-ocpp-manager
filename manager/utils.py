@@ -36,7 +36,6 @@ def params_extractor(
 
 
 async def paginate(
-    session,
     query_builder,
     page: int,
     size: int,

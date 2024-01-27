@@ -4,22 +4,21 @@ from typing import Callable, Union
 
 from ocpp.v16.enums import Action, ChargePointStatus
 
-from app.database import get_contextual_session
 from app.fields import ConnectionStatus
 from app.queue.publisher import publish
-from charge_point_node.models.authorize import AuthorizeEvent
-from charge_point_node.models.base import BaseEvent
-from charge_point_node.models.boot_notification import BootNotificationEvent
-from charge_point_node.models.heartbeat import HeartbeatEvent
-from charge_point_node.models.meter_values import MeterValuesEvent
-from charge_point_node.models.on_connection import LostConnectionEvent
-from charge_point_node.models.security_event_notification import (
+from manager.models import ChargePoint
+from manager.ocpp_events.authorize import AuthorizeEvent
+from manager.ocpp_events.base import BaseEvent
+from manager.ocpp_events.boot_notification import BootNotificationEvent
+from manager.ocpp_events.heartbeat import HeartbeatEvent
+from manager.ocpp_events.meter_values import MeterValuesEvent
+from manager.ocpp_events.on_connection import LostConnectionEvent
+from manager.ocpp_events.security_event_notification import (
     SecurityEventNotificationEvent,
 )
-from charge_point_node.models.start_transaction import StartTransactionEvent
-from charge_point_node.models.status_notification import StatusNotificationEvent
-from charge_point_node.models.stop_transaction import StopTransactionEvent
-from manager.services.charge_points import update_charge_point
+from manager.ocpp_events.start_transaction import StartTransactionEvent
+from manager.ocpp_events.status_notification import StatusNotificationEvent
+from manager.ocpp_events.stop_transaction import StopTransactionEvent
 from manager.services.ocpp.authorize import process_authorize
 from manager.services.ocpp.boot_notification import process_boot_notification
 from manager.services.ocpp.heartbeat import process_heartbeat
@@ -30,7 +29,6 @@ from manager.services.ocpp.security_event_notification import (
 from manager.services.ocpp.start_transaction import process_start_transaction
 from manager.services.ocpp.status_notification import process_status_notification
 from manager.services.ocpp.stop_transaction import process_stop_transaction
-from manager.views.charge_points import ChargePointUpdateStatusView
 from sse import sse_publisher
 from utils.logging import logger
 
@@ -59,49 +57,48 @@ def prepare_event(func) -> Callable:
 @prepare_event
 @sse_publisher.publish
 async def process_event(
-    event: Union[
-        LostConnectionEvent,
-        StatusNotificationEvent,
-        BootNotificationEvent,
-        HeartbeatEvent,
-        SecurityEventNotificationEvent,
-        AuthorizeEvent,
-        StartTransactionEvent,
-        StopTransactionEvent,
-        MeterValuesEvent,
-    ],
+        event: Union[
+            LostConnectionEvent,
+            StatusNotificationEvent,
+            BootNotificationEvent,
+            HeartbeatEvent,
+            SecurityEventNotificationEvent,
+            AuthorizeEvent,
+            StartTransactionEvent,
+            StopTransactionEvent,
+            MeterValuesEvent,
+        ],
 ) -> BaseEvent | None:
     task = None
 
-    async with get_contextual_session() as session:
-        if event.action is Action.MeterValues:
-            task = await process_meter_values(session, deepcopy(event))
-        if event.action is Action.StopTransaction:
-            task = await process_stop_transaction(session, deepcopy(event))
-            event.transaction_id = event.payload.transaction_id
-        if event.action is Action.StartTransaction:
-            task = await process_start_transaction(session, deepcopy(event))
-            event.transaction_id = task.transaction_id
-        if event.action is Action.Authorize:
-            task = await process_authorize(session, deepcopy(event))
-        if event.action is Action.SecurityEventNotification:
-            task = await process_security_event_notification(session, deepcopy(event))
-        if event.action is Action.BootNotification:
-            task = await process_boot_notification(session, deepcopy(event))
-        if event.action is Action.StatusNotification:
-            task = await process_status_notification(session, deepcopy(event))
-        if event.action is Action.Heartbeat:
-            task = await process_heartbeat(session, deepcopy(event))
+    if event.action is Action.MeterValues:
+        task = await process_meter_values(deepcopy(event))
+    if event.action is Action.StopTransaction:
+        task = await process_stop_transaction(deepcopy(event))
+        event.transaction_id = event.payload.transaction_id
+    if event.action is Action.StartTransaction:
+        task = await process_start_transaction(deepcopy(event))
+        event.transaction_id = task.transaction_id
+    if event.action is Action.Authorize:
+        task = await process_authorize(deepcopy(event))
+    if event.action is Action.SecurityEventNotification:
+        task = await process_security_event_notification(deepcopy(event))
+    if event.action is Action.BootNotification:
+        task = await process_boot_notification(deepcopy(event))
+    if event.action is Action.StatusNotification:
+        task = await process_status_notification(deepcopy(event))
+    if event.action is Action.Heartbeat:
+        task = await process_heartbeat(deepcopy(event))
 
-        if event.action is ConnectionStatus.LOST_CONNECTION:
-            data = ChargePointUpdateStatusView(status=ChargePointStatus.unavailable)
-            await update_charge_point(session, charge_point_id=event.charge_point_id, data=data)
+    if event.action is ConnectionStatus.LOST_CONNECTION:
+        await ChargePoint.objects.aupdate(
+            id=event.charge_point_id,
+            status=ChargePointStatus.unavailable,
+        )
 
-        if task:
-            await publish(task.json(), to=task.exchange, priority=task.priority)
+    if task:
+        await publish(task.model_dump_json(), to=task.exchange, priority=task.priority)
 
-        await session.commit()
-        await session.close()
-        logger.info(f'Successfully completed process event={event}')
+    logger.info(f'Successfully completed process event={event}')
 
-        return event
+    return event
