@@ -1,58 +1,31 @@
-from __future__ import annotations
+from django.db.models import Q
 
-from sqlalchemy import update, select, or_, func, String
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.sql import selectable
-
-import manager.ocpp_models as models
-from manager.ocpp_models import Transaction
+from manager.models import Transaction
 from manager.views.transactions import CreateTransactionView, UpdateTransactionView
 
 
-async def create_transaction(
-        session: AsyncSession,
-        data: CreateTransactionView
-) -> Transaction:
+async def create_transaction(data: CreateTransactionView):
     transaction = Transaction(**data.dict())
-    session.add(transaction)
+    await transaction.asave()
     return transaction
 
 
-async def update_transaction(
-        session: AsyncSession,
-        transaction_id: int,
-        data: UpdateTransactionView
-) -> None:
-    await session.execute(
-        update(Transaction) \
-            .where(Transaction.transaction_id == transaction_id) \
-            .values(**data.dict())
-    )
+async def update_transaction(transaction_id, data: UpdateTransactionView):
+    await Transaction.objects.filter(transaction_id=transaction_id).aupdate(**data.dict())
 
 
-async def get_transaction(
-        session: AsyncSession,
-        transaction_id: int
-) -> Transaction:
-    result = await session \
-        .execute(select(Transaction) \
-                 .where(Transaction.transaction_id == transaction_id))
-    return result.scalars().first()
+async def get_transaction(transaction_id):
+    return await Transaction.objects.aget(transaction_id=transaction_id)
 
 
-async def build_transactions_query(account: ocpp_models.Account, search: str) -> selectable:
-    criterias = [
-        ocpp_models.Transaction.account_id == account.id,
-    ]
-    query = select(Transaction)
-    for criteria in criterias:
-        query = query.where(criteria)
-    query = query.order_by(Transaction.transaction_id.desc())
+async def build_transactions_query(account_id, search):
+    query = Transaction.objects.filter(account_id=account_id).order_by('-transaction_id')
+
     if search:
-        query = query.where(or_(
-            func.lower(Transaction.city).contains(func.lower(search)),
-            func.lower(Transaction.address).contains(func.lower(search)),
-            func.cast(Transaction.vehicle, String).ilike(f"{search}%"),
-            func.cast(Transaction.charge_point, String).ilike(f"{search}%"),
-        ))
-    return query
+        query = query.filter(
+            Q(city__icontains=search) |
+            Q(address__icontains=search) |
+            Q(vehicle__icontains=search) |
+            Q(charge_point__icontains=search)
+        )
+    return query.aall()

@@ -42,30 +42,30 @@ class CreateLocationView(BaseModel):
     address1: str
     comment: str | None = None
 
-    @validator("comment")
+    @validator('comment')
     def validate_comment_length(cls, value):
         length = Location.comment.property.columns[0].type.length
         if value and len(value) > length:
-            raise ValueError(f"Too long 'comment' value ({length} maximum.)")
+            raise ValueError(f'Too long 'comment' value ({length} maximum.)')
         return value
 
-    @validator("name")
+    @validator('name')
     def validate_name_length(cls, value):
         length = Location.name.property.columns[0].type.length
         if len(value) > length:
-            raise ValueError(f"Too long 'name' value ({length} maximum.)")
+            raise ValueError(f'Too long 'name' value ({length} maximum.)')
         return value
 
-    @validator("city")
+    @validator('city')
     def validate_city_length(cls, value):
         length = Location.city.property.columns[0].type.length
         if len(value) > length:
-            raise ValueError(f"Too long 'city' value ({length} maximum.)")
+            raise ValueError(f'Too long 'city' value ({length} maximum.)')
         return value
 
-    @validator("address1")
+    @validator('address1')
     def validate_address1_length(cls, value):
         length = Location.address1.property.columns[0].type.length
         if len(value) > length:
-            raise ValueError(f"Too long 'address1' value ({length} maximum.)")
+            raise ValueError(f'Too long 'address1' value ({length} maximum.)')
         return value

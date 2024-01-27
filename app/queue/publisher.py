@@ -1,6 +1,6 @@
 import aio_pika
 
-from app.queue import get_connection, get_channel, get_exchange
+from app.queue import get_channel, get_connection, get_exchange
 
 
 async def publish(data: str, to: str, priority=None) -> None:
@@ -10,9 +10,9 @@ async def publish(data: str, to: str, priority=None) -> None:
 
     await exchange.publish(
         aio_pika.Message(
-            bytes(data, "utf-8"),
-            content_type="json",
-            priority=priority
+            bytes(data, 'utf-8'),
+            content_type='json',
+            priority=priority,
         ),
         routing_key=to,
     )

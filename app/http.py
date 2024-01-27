@@ -4,7 +4,6 @@ from httpx import AsyncClient
 
 
 class ApiClient:
-
     def __init__(self, host: str, port: int, client: Type[AsyncClient] = AsyncClient):
         self._host = host
         self._port = port
@@ -19,9 +18,9 @@ class ApiClient:
         return self._port
 
     def get_uri(self, endpoint: str) -> str:
-        host = self.host.rstrip("/")
+        host = self.host.rstrip('/')
         endpoint = endpoint.lstrip('/')
-        return f"{host}:{self.port}/api/{endpoint}"
+        return f'{host}:{self.port}/api/{endpoint}'
 
     async def post(self, endpoint: str, data=None):
         uri = self.get_uri(endpoint)

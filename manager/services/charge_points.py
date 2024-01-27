@@ -1,88 +1,61 @@
-from __future__ import annotations
-
-import asyncio
-from typing import Dict
-
-from loguru import logger
+from django.db.models import Count, Q
 from passlib.hash import pbkdf2_sha256 as sha256
-from sqlalchemy import select, update, text, func, or_, String, delete
-from sqlalchemy.sql import selectable
 
-import manager.ocpp_models as models
 from charge_point_node.models.status_notification import StatusNotificationEvent
-from manager.ocpp_models import ChargePoint
+from manager.models import ChargePoint
 from manager.views.charge_points import CreateChargPointView, ConnectorView
 
 
-async def update_connectors(session, event: StatusNotificationEvent) -> Dict:
-    payload = event.payload
-    charge_point = await get_charge_point(session, event.charge_point_id)
-    if payload.connector_id == 1:
-        charge_point.connectors = {payload.connector_id: ConnectorView(status=payload.status).dict()}
-    if payload.connector_id > 1:
-        charge_point.connectors[payload.connector_id] = ConnectorView(status=payload.status).dict()
-    session.add(charge_point)
+async def update_connectors(event: StatusNotificationEvent):
+    charge_point = await ChargePoint.objects.aget(id=event.charge_point_id)
+    connector_data = ConnectorView(status=event.payload.status).dict()
+    if event.payload.connector_id == 1:
+        charge_point.connectors = {event.payload.connector_id: connector_data}
+    else:
+        charge_point.connectors.update({event.payload.connector_id: connector_data})
+    await charge_point.save()
 
-async def build_charge_points_query(account: ocpp_models.Account, search: str) -> selectable:
-    criterias = [
-        ocpp_models.Location.account_id == account.id,
-        ocpp_models.Location.is_active.is_(True),
-        ChargePoint.is_active.is_(True)
-    ]
-    query = select(ChargePoint).outerjoin(ocpp_models.Location)
-    for criteria in criterias:
-        query = query.where(criteria)
-    query = query.order_by(ChargePoint.updated_at.asc())
+
+async def build_charge_points_query(account, search):
+    query = ChargePoint.objects.filter(
+        location__account=account,
+        location__is_active=True,
+        is_active=True
+    ).order_by('updated_at')
+
     if search:
-        query = query.where(or_(
-            func.lower(ChargePoint.id).contains(func.lower(search)),
-            func.cast(ChargePoint.status, String).ilike(f"{search}%"),
-            func.lower(ChargePoint.model).contains(func.lower(search)),
-            func.lower(ocpp_models.Location.address1).contains(func.lower(search)))
+        query = query.filter(
+            Q(id__icontains=search) |
+            Q(status__icontains=search) |
+            Q(model__icontains=search) |
+            Q(location__address1__icontains=search)
         )
-    return query
+    return query.aall()
 
 
-async def get_charge_point(session, charge_point_id) -> ChargePoint | None:
-    result = await session.execute(select(ChargePoint).where(ChargePoint.id == charge_point_id))
-    return result.scalars().first()
+async def get_charge_point(charge_point_id):
+    return await ChargePoint.objects.aget(id=charge_point_id)
 
 
-async def create_charge_point(session, data: CreateChargPointView):
+async def create_charge_point(data: CreateChargPointView):
     if data.password:
         data.password = sha256.hash(data.password)
     charge_point = ChargePoint(**data.dict())
-    session.add(charge_point)
+    await charge_point.save()
     return charge_point
 
-async def update_charge_point(
-        session,
-        charge_point_id: str,
-        data
-) -> None:
-    logger.info((f"Start process update charge point status "
-                 f"(charge_point_id={charge_point_id}, data={data})"))
-    await session.execute(update(ChargePoint) \
-                          .where(ChargePoint.id == charge_point_id) \
-                          .values(**data.dict(exclude_unset=True)))
 
-async def remove_charge_point(session, charge_point_id: str) -> None:
-        query = delete(ChargePoint) \
-            .where(ChargePoint.id == charge_point_id)
-        await session.execute(query)
+async def update_charge_point(charge_point_id, data):
+    await ChargePoint.objects.filter(id=charge_point_id).aupdate(**data.dict(exclude_unset=True))
 
 
-async def get_statuses_counts(session, account_id: str) -> Dict:
-    """
-    A dict with statuses and counts. Example:
-    {'offline': 1, 'available': 0, 'reserved': 0, 'charging': 0}
-    """
-    query = "SELECT status, count(status) AS count FROM charge_points cp " \
-            "JOIN locations l ON l.id = cp.location_id " \
-            "WHERE l.account_id = '%s' " \
-            "GROUP BY status;" % account_id
+async def remove_charge_point(charge_point_id):
+    await ChargePoint.objects.filter(id=charge_point_id).adelete()
 
-    result = await session.execute(text(query))
-    data = result.fetchall()
-    await asyncio.sleep(1)
-    return {item.status.lower(): item.count for item in data}
+
+async def get_statuses_counts(account_id):
+    result = await ChargePoint.objects.filter(location__account_id=account_id).values('status').annotate(
+        count=Count('status')
+    )
+
+    return {item['status'].lower(): item['count'] for item in result}

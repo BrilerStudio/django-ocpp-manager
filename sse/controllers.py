@@ -9,7 +9,7 @@ from manager.services.accounts import get_account
 from sse import sse_publisher
 from sse.observer import Observer
 
-stream_router = APIRouter(tags=["stream"])
+stream_router = APIRouter(tags=['stream'])
 
 
 async def event_generator(observer: Observer):
@@ -28,5 +28,5 @@ async def stream(request: Request, account: Account = Depends(get_account)):
     await observer.subscribe(sse_publisher)
 
     return EventSourceResponse(
-        event_generator(observer)
+        event_generator(observer),
     )

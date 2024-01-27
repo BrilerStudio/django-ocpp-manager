@@ -1,49 +1,36 @@
-from typing import List
+from django.db.models import Count, Q
 
-from sqlalchemy import func, select, or_, delete
-from sqlalchemy.sql import selectable
-
-from manager.ocpp_models import ChargePoint, Location
+from manager.models import Location
 from manager.views.locations import CreateLocationView
 
-criterias = lambda account_id: [
-    Location.account_id == account_id,
-    Location.is_active.is_(True)
-]
+
+def criterias(account_id):
+    return Q(account_id=account_id, is_active=True)
 
 
-async def list_simple_locations(session, account_id: str) -> List[Location]:
-    query = select(Location)
-    for criteria in criterias(account_id):
-        query = query.where(criteria)
-    result = await session.execute(query)
-    return [i[0] for i in result.unique().fetchall()]
+async def list_simple_locations(account_id):
+    return await Location.objects.filter(criterias(account_id)).distinct().all()
 
 
-async def remove_location(session, location_id: str):
-    query = delete(Location).where(Location.id == location_id)
-    await session.execute(query)
+async def remove_location(location_id):
+    await Location.objects.filter(id=location_id).delete()
 
 
-async def create_location(session, account_id: str, data: CreateLocationView) -> Location:
+async def create_location(account_id, data: CreateLocationView):
     location = Location(account_id=account_id, **data.dict())
-    session.add(location)
+    await location.save()
     return location
 
 
-async def build_locations_query(account_id: str, search: str) -> selectable:
-    charge_points_count = func.count(ChargePoint.id) \
-        .label("charge_points_count")
-    query = select(Location, charge_points_count) \
-        .outerjoin(ChargePoint) \
-        .order_by(Location.created_at.desc()) \
-        .group_by(Location.id)
-    for criteria in criterias(account_id):
-        query = query.where(criteria)
+async def build_locations_query(account_id, search):
+    query = Location.objects.filter(criterias(account_id)).annotate(
+        charge_points_count=Count('chargepoint')
+    ).order_by('-created_at')
+
     if search:
-        query = query.where(or_(
-            func.lower(Location.name).contains(func.lower(search)),
-            func.lower(Location.city).contains(func.lower(search)),
-            func.lower(Location.address1).contains(func.lower(search)))
+        query = query.filter(
+            Q(name__icontains=search) |
+            Q(city__icontains=search) |
+            Q(address1__icontains=search)
         )
     return query

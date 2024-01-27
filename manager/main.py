@@ -1,11 +1,9 @@
 import asyncio
 
 from fastapi import APIRouter
-from loguru import logger
 
+from app import EVENTS_EXCHANGE_NAME, start_consume
 from app.database import get_contextual_session
-from app import start_consume
-from app import EVENTS_EXCHANGE_NAME
 from manager import app
 from manager.controllers.accounts import accounts_router
 from manager.controllers.charge_points import charge_points_router
@@ -15,27 +13,28 @@ from manager.controllers.transactions import transaction_router
 from manager.events import process_event
 from manager.services.accounts import list_accounts
 from sse.controllers import stream_router
+from utils.logging import logger
 
 background_tasks = set()
 
 
-@app.on_event("startup")
+@app.on_event('startup')
 async def startup():
     # Save a reference to the result of this function, to avoid a task disappearing mid-execution.
     # The event loop only keeps weak references to tasks.
     task = asyncio.create_task(
-        start_consume(exchange_name=EVENTS_EXCHANGE_NAME, on_message=process_event)
+        start_consume(exchange_name=EVENTS_EXCHANGE_NAME, on_message=process_event),
     )
     background_tasks.add(task)
 
     async with get_contextual_session() as session:
         accounts = await list_accounts(session)
-        logger.info(f"Started up application with accounts = ({accounts}).")
+        logger.info(f'Started up application with accounts = ({accounts}).')
 
 
 router = APIRouter(
-    prefix="/api",
-    tags=["api"],
+    prefix='/api',
+    tags=['api'],
 )
 
 router.include_router(accounts_router)

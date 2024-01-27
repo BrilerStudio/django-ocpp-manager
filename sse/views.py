@@ -6,19 +6,21 @@ from ocpp.v16.enums import Action
 from pydantic import BaseModel
 
 import manager.services.charge_points as service
+from app.database import get_contextual_session
+from app.fields import ConnectionStatus
 from charge_point_node.models.authorize import AuthorizeEvent
 from charge_point_node.models.boot_notification import BootNotificationEvent
 from charge_point_node.models.heartbeat import HeartbeatEvent
 from charge_point_node.models.meter_values import MeterValuesEvent
 from charge_point_node.models.on_connection import LostConnectionEvent
-from charge_point_node.models.security_event_notification import SecurityEventNotificationEvent
+from charge_point_node.models.security_event_notification import (
+    SecurityEventNotificationEvent,
+)
 from charge_point_node.models.start_transaction import StartTransactionEvent
 from charge_point_node.models.status_notification import StatusNotificationEvent
 from charge_point_node.models.stop_transaction import StopTransactionEvent
-from app.database import get_contextual_session
-from app.fields import ConnectionStatus
 from manager.services.transactions import get_transaction
-from manager.views.charge_points import StatusCount, SimpleChargePoint
+from manager.views.charge_points import SimpleChargePoint, StatusCount
 from manager.views.transactions import Transaction
 
 
@@ -34,12 +36,12 @@ class SSEventData(BaseModel):
 
 class SSEvent(BaseModel):
     data: SSEventData
-    event: str = "message"
+    event: str = 'message'
 
 
 class Redactor:
-
-    async def prepare_event(self,
+    async def prepare_event(
+        self,
         event: Union[
             LostConnectionEvent,
             StatusNotificationEvent,
@@ -49,19 +51,19 @@ class Redactor:
             AuthorizeEvent,
             StartTransactionEvent,
             StopTransactionEvent,
-            MeterValuesEvent
+            MeterValuesEvent,
         ],
-        account_id: str
+        account_id: str,
     ) -> SSEvent:
         data = SSEventData(
             charge_point_id=event.charge_point_id,
-            name=event.action
+            name=event.action,
         )
         # Note: there is a list ALLOWED_SERVER_SIDE_EVENTS in the settings
         async with get_contextual_session() as session:
             if event.action in [ConnectionStatus.LOST_CONNECTION]:
                 data.meta = ConnectionMetaData(
-                    count=StatusCount(**await service.get_statuses_counts(session, account_id))
+                    count=StatusCount(**await service.get_statuses_counts(session, account_id)),
                 ).dict()
             if event.action in [Action.StatusNotification]:
                 charge_point = await service.get_charge_point(session, event.charge_point_id)

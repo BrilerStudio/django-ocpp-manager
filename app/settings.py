@@ -50,7 +50,6 @@ INSTALLED_APPS = [
     'corsheaders',
     'debug_toolbar',
     'djangoql',
-
     'manager',
     'charge_point_node',
 ]
@@ -219,9 +218,9 @@ ALLOWED_SERVER_SENT_EVENTS = [
     Action.Heartbeat,
     Action.StatusNotification,
     Action.StartTransaction,
-    Action.StopTransaction
+    Action.StopTransaction,
 ]
 
-LOCK_FOLDER = "/tmp/lock"
+LOCK_FOLDER = '/tmp/lock'
 
 OCPP_VERSION = env('OCPP_VERSION', default='1.6')

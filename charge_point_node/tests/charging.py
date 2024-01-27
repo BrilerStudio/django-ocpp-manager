@@ -1,45 +1,50 @@
 import asyncio
+import dataclasses
+import json
+from uuid import uuid4
 
 import arrow
 import websockets
-import json
-from uuid import uuid4
-import dataclasses
-
-from ocpp.charge_point import snake_to_camel_case, camel_to_snake_case
-from ocpp.v16.call import (
-    AuthorizePayload as CallAuthorizePayload,
-    StartTransactionPayload as CallStartTransactionPayload,
-    StopTransactionPayload as CallStopTransactionPayload,
-    MeterValuesPayload as CallMeterValuesPayload
+from ocpp.charge_point import camel_to_snake_case, snake_to_camel_case
+from ocpp.v16.call import AuthorizePayload as CallAuthorizePayload
+from ocpp.v16.call import MeterValuesPayload as CallMeterValuesPayload
+from ocpp.v16.call import StartTransactionPayload as CallStartTransactionPayload
+from ocpp.v16.call import StopTransactionPayload as CallStopTransactionPayload
+from ocpp.v16.call_result import AuthorizePayload as CallResultAuthorizePayload
+from ocpp.v16.call_result import (
+    StartTransactionPayload as CallResultStartTransactionPayload,
 )
 from ocpp.v16.call_result import (
-    AuthorizePayload as CallResultAuthorizePayload,
-    StartTransactionPayload as CallResultStartTransactionPayload,
     StopTransactionPayload as CallResultStopTransactionPayload,
 )
 from ocpp.v16.enums import Action
 
-from charge_point_node.tests import init_data, charge_point_id, url, clean_tables
 from app.database import get_contextual_session
+from charge_point_node.tests import charge_point_id, clean_tables, init_data, url
 from manager.services.transactions import get_transaction
 
 id_tag: str | None = None
 transaction_id: int | None = None
 
-async def test_authorize(websocket):
 
-    authorize_payload = dataclasses.asdict(CallAuthorizePayload(
-        id_tag=str(uuid4()).split("-")[0]
-    ))
+async def test_authorize(websocket):
+    authorize_payload = dataclasses.asdict(
+        CallAuthorizePayload(
+            id_tag=str(uuid4()).split('-')[0],
+        ),
+    )
 
     message_id = str(uuid4())
-    await websocket.send(json.dumps([
-        2,
-        message_id,
-        Action.Authorize.value,
-        snake_to_camel_case({k: v for k, v in authorize_payload.items() if not v is None})
-    ]))
+    await websocket.send(
+        json.dumps(
+            [
+                2,
+                message_id,
+                Action.Authorize.value,
+                snake_to_camel_case({k: v for k, v in authorize_payload.items() if not v is None}),
+            ]
+        ),
+    )
     await asyncio.sleep(1)
     response = await websocket.recv()
     data = json.loads(response)
@@ -52,23 +57,29 @@ async def test_start_transaction(websocket, account, location, charge_point):
     global transaction_id
     global id_tag
 
-    id_tag = str(uuid4()).split("-")[0]
+    id_tag = str(uuid4()).split('-')[0]
     meter_start = 1000
 
-    start_transaction_payload = dataclasses.asdict(CallStartTransactionPayload(
-        connector_id=1,
-        id_tag=id_tag,
-        meter_start=meter_start,
-        timestamp=arrow.get().isoformat()
-    ))
+    start_transaction_payload = dataclasses.asdict(
+        CallStartTransactionPayload(
+            connector_id=1,
+            id_tag=id_tag,
+            meter_start=meter_start,
+            timestamp=arrow.get().isoformat(),
+        ),
+    )
 
     message_id = str(uuid4())
-    await websocket.send(json.dumps([
-        2,
-        message_id,
-        Action.StartTransaction.value,
-        snake_to_camel_case({k: v for k, v in start_transaction_payload.items() if not v is None})
-    ]))
+    await websocket.send(
+        json.dumps(
+            [
+                2,
+                message_id,
+                Action.StartTransaction.value,
+                snake_to_camel_case({k: v for k, v in start_transaction_payload.items() if not v is None}),
+            ]
+        ),
+    )
     await asyncio.sleep(1)
     response = await websocket.recv()
     data = json.loads(response)
@@ -88,25 +99,31 @@ async def test_start_transaction(websocket, account, location, charge_point):
 
 
 async def test_meter_values(websocket):
-    meter_values_payload = dataclasses.asdict(CallMeterValuesPayload(
-        connector_id=1,
-        transaction_id=123,
-        meter_value=[
-            {
-                "timestamp": arrow.get().isoformat(),
-                "sampled_value": [
-                    {"value": "4567.45"}
-                ]
-            }
-        ]
-    ))
+    meter_values_payload = dataclasses.asdict(
+        CallMeterValuesPayload(
+            connector_id=1,
+            transaction_id=123,
+            meter_value=[
+                {
+                    'timestamp': arrow.get().isoformat(),
+                    'sampled_value': [
+                        {'value': '4567.45'},
+                    ],
+                },
+            ],
+        ),
+    )
     message_id = str(uuid4())
-    await websocket.send(json.dumps([
-        2,
-        message_id,
-        Action.MeterValues.value,
-        snake_to_camel_case({k: v for k, v in meter_values_payload.items() if not v is None})
-    ]))
+    await websocket.send(
+        json.dumps(
+            [
+                2,
+                message_id,
+                Action.MeterValues.value,
+                snake_to_camel_case({k: v for k, v in meter_values_payload.items() if not v is None}),
+            ]
+        ),
+    )
     await asyncio.sleep(1)
     response = await websocket.recv()
     data = json.loads(response)
@@ -116,22 +133,27 @@ async def test_meter_values(websocket):
 
 
 async def test_stop_transaction(websocket, account, location, charge_point):
-
     meter_stop = 1200
-    stop_transaction_payload = dataclasses.asdict(CallStopTransactionPayload(
-        meter_stop=meter_stop,
-        id_tag=id_tag,
-        timestamp=arrow.get().isoformat(),
-        transaction_id=transaction_id
-    ))
+    stop_transaction_payload = dataclasses.asdict(
+        CallStopTransactionPayload(
+            meter_stop=meter_stop,
+            id_tag=id_tag,
+            timestamp=arrow.get().isoformat(),
+            transaction_id=transaction_id,
+        ),
+    )
 
     message_id = str(uuid4())
-    await websocket.send(json.dumps([
-        2,
-        message_id,
-        Action.StopTransaction.value,
-        snake_to_camel_case({k: v for k, v in stop_transaction_payload.items() if not v is None})
-    ]))
+    await websocket.send(
+        json.dumps(
+            [
+                2,
+                message_id,
+                Action.StopTransaction.value,
+                snake_to_camel_case({k: v for k, v in stop_transaction_payload.items() if not v is None}),
+            ]
+        ),
+    )
     await asyncio.sleep(1)
     response = await websocket.recv()
     data = json.loads(response)
@@ -164,7 +186,8 @@ async def test_charging():
 
     await clean_tables(account, location, charge_point)
 
-    print("\n\n --- SUCCESS ---")
+    print('\n\n --- SUCCESS ---')
 
-if __name__ == "__main__":
+
+if __name__ == '__main__':
     asyncio.get_event_loop().run_until_complete(test_charging())

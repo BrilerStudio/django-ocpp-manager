@@ -1,16 +1,15 @@
 from __future__ import annotations
 
 from functools import wraps
-from typing import List, Callable
-
-from loguru import logger
+from typing import Callable, List
 
 import manager.services.charge_points as service
-from charge_point_node.models.base import BaseEvent
 from app import settings
 from app.database import get_contextual_session
+from charge_point_node.models.base import BaseEvent
 from sse import observer as obs
 from sse.views import Redactor
+from utils.logging import logger
 
 
 class Publisher:
@@ -45,11 +44,11 @@ class Publisher:
         async def wrapper(*args, **kwargs):
             event = await func(*args, **kwargs)
             if event and event.action in settings.ALLOWED_SERVER_SENT_EVENTS:
-                logger.info(f"Start sending sse (event={event})")
+                logger.info(f'Start sending sse (event={event})')
                 async with get_contextual_session() as session:
                     charge_point = await service.get_charge_point(
                         session,
-                        event.charge_point_id
+                        event.charge_point_id,
                     )
                     if charge_point:
                         for observer in self.observers:
