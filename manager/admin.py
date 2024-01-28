@@ -67,7 +67,7 @@ class ChargePointAdmin(DjangoQLSearchMixin, admin.ModelAdmin):
         'serial_number',
         'comment',
         'model',
-        'password',
+        'password_hash',
         'connectors',
         'location',
     )
@@ -82,7 +82,7 @@ class ChargePointAdmin(DjangoQLSearchMixin, admin.ModelAdmin):
         'serial_number',
         'comment',
         'model',
-        'password',
+        'password_hash',
         'connectors',
         'location',
     )
@@ -97,7 +97,7 @@ class ChargePointAdmin(DjangoQLSearchMixin, admin.ModelAdmin):
         'serial_number',
         'comment',
         'model',
-        'password',
+        'password_hash',
         'connectors',
         'location',
     )
@@ -122,7 +122,7 @@ class ChargePointAdmin(DjangoQLSearchMixin, admin.ModelAdmin):
                     'serial_number',
                     'comment',
                     'model',
-                    'password',
+                    'password_hash',
                     'connectors',
                     'location',
                 ),

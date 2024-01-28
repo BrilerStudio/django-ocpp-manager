@@ -12,7 +12,7 @@ class ApiV1ViewMixin:
     tags = [
         'ApiV1',
     ]
-    authentication_classes = [BasicAuthentication]
+    authentication_classes = [BasicAuthentication, SessionAuthentication]
     permission_classes = [IsAuthenticated]
     parser_classes = (JSONParser,)
     renderer_classes = (JSONRenderer,)

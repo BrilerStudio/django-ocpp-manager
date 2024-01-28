@@ -38,6 +38,8 @@ schema_view = get_schema_view(
     openapi.Info(
         title='API',
         default_version='v1',
+        description='To access the API, you need to create a new user and use base64(username and password) to access '
+                    'the API',
     ),
     public=True,
     authentication_classes=[

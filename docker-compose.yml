@@ -1,7 +1,7 @@
 version: '3.7'
 
 x-backend-service: &x-backend-service
-  build: .
+  image: briler/django-ocpp-manager:latest
   env_file:
     - .env
   restart: unless-stopped
@@ -9,8 +9,6 @@ x-backend-service: &x-backend-service
 services:
   migrate:
     <<: *x-backend-service
-    depends_on:
-      - postgres
     command: python manage.py migrate --noinput
     restart: "no"
 
@@ -20,55 +18,32 @@ services:
       - 8000
     volumes:
       - static_volume:/app/static
-    depends_on:
-      - postgres
     command: [ "gunicorn", "-c", "/app/app/gunicorn.py", "app.wsgi" ]
-#
-#  manager:
-#    container_name: csms-manager
-#    build:
-#      context: ..
-#      dockerfile: Dockerfile
-#    volumes:
-#      - .:/usr/src/csms
-#    ports:
-#      - "8001:${HTTP_SERVER_PORT}"
-#    env_file:
-#      - .env
-#    networks:
-#      - app-network
-#    restart: always
-#    command: >
-#      sh -c "cd /usr/src/csms && alembic upgrade head &&
-#             uvicorn manager.main:app --host 0.0.0.0 --port 8001 --reload"
-#    depends_on:
-#      rabbitmq:
-#        condition: service_healthy
-#      db:
-#        condition: service_healthy
-#    healthcheck:
-#      test: "exit 0"
-#
-#  charge_point_node:
-#    container_name: charge_point_node
-#    restart: always
-#    build:
-#      context: ..
-#      dockerfile: Dockerfile
-#    volumes:
-#      - .:/usr/src/csms
-#    ports:
-#      - "${WS_SERVER_PORT}:${WS_SERVER_PORT}"
-#    env_file:
-#      - .env
-#    command: >
-#      sh -c "cd /usr/src/csms &&
-#             watchmedo auto-restart --pattern '*.py' --recursive --signal SIGTERM python charge_point_node/main.py"
-#    depends_on:
-#      rabbitmq:
-#        condition: service_healthy
-#    networks:
-#      - app-network
+  #
+  #  manager:
+  #    container_name: csms-manager
+  #    build:
+  #      context: ..
+  #      dockerfile: Dockerfile
+  #    volumes:
+  #      - .:/usr/src/csms
+  #    ports:
+  #      - "8001:${HTTP_SERVER_PORT}"
+  #    env_file:
+  #      - .env
+  #    networks:
+  #      - app-network
+  #    restart: always
+  #    command: >
+  #      sh -c "cd /usr/src/csms && alembic upgrade head &&
+  #             uvicorn manager.main:app --host 0.0.0.0 --port 8001 --reload"
+  #    depends_on:
+  #      rabbitmq:
+  #        condition: service_healthy
+  #      db:
+  #        condition: service_healthy
+  #    healthcheck:
+  #      test: "exit 0"
 
   nginx:
     image: nginx:1.25-alpine
@@ -80,39 +55,12 @@ services:
     depends_on:
       - backend
 
-  postgres:
-    image: postgres
-    restart: always
-    env_file:
-      - .env
-    ports:
-      - "127.0.0.1:5432:5432"
+  watchtower:
+    image: containrrr/watchtower
     volumes:
-      - postgres_data:/var/lib/postgresql/data/
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --interval 30 django-ocpp-manager
 
-  rabbitmq:
-    image: rabbitmq:3.12.0-management
-    restart: always
-    container_name: csms-rabbitmq
-    env_file:
-      - .env
-    ports:
-      - "127.0.0.1:${RABBITMQ_PORT}:${RABBITMQ_PORT}"
-      - "127.0.0.1:${RABBITMQ_UI_PORT}:${RABBITMQ_UI_PORT}"
-    environment:
-      RABBITMQ_DEFAULT_USER: "${RABBITMQ_USER}"
-      RABBITMQ_DEFAULT_PASS: "${RABBITMQ_PASS}"
-    healthcheck:
-      test: "exit 0"
-    networks:
-      - app-network
 
 volumes:
-  postgres_data:
   static_volume:
-
-
-networks:
-  app-network:
-    driver: bridge
-
