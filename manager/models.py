@@ -43,6 +43,13 @@ class ChargePoint(models.Model):
         verbose_name = _('Charge Point')
         verbose_name_plural = _('Charge Points')
 
+    code = models.CharField(
+        max_length=256,
+        unique=True,
+        null=False,
+        blank=False,
+    )
+
     description = models.TextField(
         null=True,
         blank=True
@@ -107,6 +114,10 @@ class ChargePoint(models.Model):
 
     def check_password(self, password):
         return not self.password_hash or check_password(password, self.password_hash)
+
+    @property
+    def websocket_url(self):
+        return f'ws://localhost/{self.code}'
 
     def __str__(self):
         return f'ChargePoint (id={self.id}, status={self.status}, location={self.location})'

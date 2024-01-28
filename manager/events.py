@@ -29,7 +29,6 @@ from manager.services.ocpp.security_event_notification import (
 from manager.services.ocpp.start_transaction import process_start_transaction
 from manager.services.ocpp.status_notification import process_status_notification
 from manager.services.ocpp.stop_transaction import process_stop_transaction
-from sse import sse_publisher
 from utils.logging import logger
 
 
@@ -55,7 +54,6 @@ def prepare_event(func) -> Callable:
 
 
 @prepare_event
-@sse_publisher.publish
 async def process_event(
         event: Union[
             LostConnectionEvent,

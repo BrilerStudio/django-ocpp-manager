@@ -25,6 +25,7 @@ class ChargePointSerializer(serializers.ModelSerializer):
         model = ChargePoint
         fields = (
             'id',
+            'code',
             'description',
             'status',
             'manufacturer',
@@ -36,6 +37,7 @@ class ChargePointSerializer(serializers.ModelSerializer):
             'connectors',
             'password',
             'location',
+            'websocket_url',
         )
 
     location = SlugRelatedField(
@@ -72,6 +74,7 @@ class ChargePointVerifyPasswordSerializer(serializers.ModelSerializer):
         model = ChargePoint
         fields = (
             'id',
+            'code',
             'description',
             'status',
             'manufacturer',
@@ -83,10 +86,12 @@ class ChargePointVerifyPasswordSerializer(serializers.ModelSerializer):
             'connectors',
             'location',
             'password',
+            'websocket_url',
         )
 
         read_only_fields = (
             'id',
+            'code',
             'description',
             'status',
             'manufacturer',
@@ -97,6 +102,7 @@ class ChargePointVerifyPasswordSerializer(serializers.ModelSerializer):
             'model',
             'connectors',
             'location',
+            'websocket_url',
         )
 
     location = LocationSerializer(read_only=True)

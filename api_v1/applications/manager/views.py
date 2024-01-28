@@ -11,13 +11,14 @@ from utils.drf_helpers import create_handler
 from . import serializers
 
 
-class ManagerViewSet(ApiV1ViewMixin, viewsets.ModelViewSet):
+class ChargePointViewSet(ApiV1ViewMixin, viewsets.ModelViewSet):
     pagination_class = AdminPageNumberPagination
     queryset = ChargePoint.objects.all().select_related('location')
     serializer_class = serializers.ChargePointSerializer
     filter_backends = [DjangoFilterBackend, ReactSearchFilter, filters.OrderingFilter]
     search_fields = [
         'id',
+        'code',
         'description',
         'status',
         'manufacturer',
@@ -29,6 +30,7 @@ class ManagerViewSet(ApiV1ViewMixin, viewsets.ModelViewSet):
         'location',
     ]
     filterset_fields = [
+        'code',
         'description',
         'status',
         'manufacturer',
@@ -40,6 +42,7 @@ class ManagerViewSet(ApiV1ViewMixin, viewsets.ModelViewSet):
         'location',
     ]
     ordering_fields = [
+        'code',
         'description',
         'status',
         'manufacturer',
@@ -51,6 +54,7 @@ class ManagerViewSet(ApiV1ViewMixin, viewsets.ModelViewSet):
         'location',
     ]
     ordering = [
+        'code',
         'description',
         'status',
         'manufacturer',

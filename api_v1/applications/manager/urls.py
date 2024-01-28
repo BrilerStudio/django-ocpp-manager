@@ -5,7 +5,7 @@ from . import views
 
 router = DefaultRouter()
 
-router.register(r'Manager', views.ManagerViewSet)
+router.register(r'ChargePoint', views.ChargePointViewSet)
 router.register(r'Location', views.LocationViewSet)
 router.register(r'Transaction', views.TransactionViewSet)
 

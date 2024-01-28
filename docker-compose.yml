@@ -7,6 +7,11 @@ x-backend-service: &x-backend-service
   restart: unless-stopped
 
 services:
+  ocpp_consumer:
+    <<: *x-backend-service
+    command: python manage.py run_ocpp_consumer
+    restart: always
+
   migrate:
     <<: *x-backend-service
     command: python manage.py migrate --noinput
@@ -19,31 +24,6 @@ services:
     volumes:
       - static_volume:/app/static
     command: [ "gunicorn", "-c", "/app/app/gunicorn.py", "app.wsgi" ]
-  #
-  #  manager:
-  #    container_name: csms-manager
-  #    build:
-  #      context: ..
-  #      dockerfile: Dockerfile
-  #    volumes:
-  #      - .:/usr/src/csms
-  #    ports:
-  #      - "8001:${HTTP_SERVER_PORT}"
-  #    env_file:
-  #      - .env
-  #    networks:
-  #      - app-network
-  #    restart: always
-  #    command: >
-  #      sh -c "cd /usr/src/csms && alembic upgrade head &&
-  #             uvicorn manager.main:app --host 0.0.0.0 --port 8001 --reload"
-  #    depends_on:
-  #      rabbitmq:
-  #        condition: service_healthy
-  #      db:
-  #        condition: service_healthy
-  #    healthcheck:
-  #      test: "exit 0"
 
   nginx:
     image: nginx:1.25-alpine
