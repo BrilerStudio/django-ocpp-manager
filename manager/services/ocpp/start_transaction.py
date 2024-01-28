@@ -10,15 +10,14 @@ async def process_start_transaction(
         event: StartTransactionEvent,
 ) -> StartTransactionTask:
     logger.info(f'Start process StartTransaction (event={event})')
-    charge_point = await ChargePoint.objects.aget(event.charge_point_id)
+    charge_point = await ChargePoint.objects.aget(charge_point_id=event.charge_point_id)
 
     transaction = await Transaction.objects.acreate(
-        city=charge_point.location.city,
-        address=charge_point.location.address1,
+        city=charge_point.location.city if charge_point.location else 'Unknown',
+        address=charge_point.location.address1 if charge_point.location else 'Unknown',
         vehicle=event.payload.id_tag,
         meter_start=event.payload.meter_start,
-        charge_point=charge_point.id,
-        account_id=charge_point.location.account.id,
+        charge_point=charge_point,
     )
 
     return StartTransactionTask(

@@ -1,7 +1,5 @@
-import arrow
-
-from app import settings
+from datetime import datetime
 
 
 def get_utc_as_string() -> str:
-    return arrow.utcnow().datetime.strftime(settings.DATETIME_FORMAT)
+    return datetime.utcnow().isoformat()

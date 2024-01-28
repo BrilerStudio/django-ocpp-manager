@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 from djangoql.admin import DjangoQLSearchMixin
 
+from utils.helpers import pretty_json_html
 from . import models
 from .forms import ChargePointAdminForm
 
@@ -101,6 +102,15 @@ class ChargePointAdmin(DjangoQLSearchMixin, admin.ModelAdmin):
         'location',
     )
 
+    list_select_related = (
+        'location',
+    )
+
+    list_display_links = (
+        'id',
+        'charge_point_id',
+    )
+
     readonly_fields = (
         'id',
         'status',
@@ -190,6 +200,14 @@ class TransactionAdmin(DjangoQLSearchMixin, admin.ModelAdmin):
         'transaction_id',
     )
 
+    list_select_related = (
+        'charge_point',
+    )
+
+    list_display_links = (
+        'transaction_id',
+    )
+
     fieldsets = (
         (
             _('General'),
@@ -200,12 +218,18 @@ class TransactionAdmin(DjangoQLSearchMixin, admin.ModelAdmin):
                     'vehicle',
                     'address',
                     'meter_start',
+                    'get_meter_value_raw',
                     'meter_stop',
                     'charge_point',
                 ),
             },
         ),
     )
+
+    @admin.display(description='Meter value raw')
+    def get_meter_value_raw(self, obj: models.Transaction):
+        if obj.meter_value_raw:
+            return pretty_json_html(obj.meter_value_raw)
 
     def has_add_permission(self, request):
         return False

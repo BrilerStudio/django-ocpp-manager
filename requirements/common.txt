@@ -15,4 +15,5 @@ drf-extensions==0.7.1
 drf-yasg==1.21.7
 django-filter==23.4
 pydantic==2.5.3
+pygments==2.16.1
 

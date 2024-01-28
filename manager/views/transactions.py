@@ -12,7 +12,6 @@ class CreateTransactionView(BaseModel):
     address: str
     meter_start: int
     charge_point: str
-    account_id : str
 
 
 class UpdateTransactionView(BaseModel):

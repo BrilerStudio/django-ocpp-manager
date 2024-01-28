@@ -128,7 +128,7 @@ class ChargePoint(models.Model):
         return f'{WEBSOCKETS_URL}/{self.charge_point_id}'
 
     def __str__(self):
-        return f'ChargePoint (id={self.id}, status={self.status}, location={self.location})'
+        return f'ChargePoint {self.id} {self.charge_point_id} {self.status}'
 
 
 class Transaction(models.Model):
@@ -155,6 +155,13 @@ class Transaction(models.Model):
     meter_start = models.IntegerField()
 
     meter_stop = models.IntegerField(
+        null=True,
+        blank=True,
+    )
+
+    meter_value_raw = models.JSONField(
+        default=dict,
+        editable=False,
         null=True,
         blank=True,
     )

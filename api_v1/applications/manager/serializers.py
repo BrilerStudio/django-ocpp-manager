@@ -136,6 +136,7 @@ class TransactionSerializer(serializers.ModelSerializer):
             'vehicle',
             'address',
             'meter_start',
+            'meter_value_raw',
             'meter_stop',
             'charge_point',
         )
