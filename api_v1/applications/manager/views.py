@@ -12,6 +12,7 @@ from . import serializers
 
 
 class ChargePointViewSet(ApiV1ViewMixin, viewsets.ModelViewSet):
+    lookup_field = 'code'
     pagination_class = AdminPageNumberPagination
     queryset = ChargePoint.objects.all().select_related('location')
     serializer_class = serializers.ChargePointSerializer
