@@ -52,7 +52,7 @@ class ChargePoint(models.Model):
 
     description = models.TextField(
         null=True,
-        blank=True
+        blank=True,
     )
 
     status = models.CharField(
@@ -62,14 +62,16 @@ class ChargePoint(models.Model):
     )
 
     manufacturer = models.CharField(
-        max_length=48
+        max_length=48,
+        null=True,
+        blank=True,
     )
 
     latitude = models.DecimalField(
         max_digits=9,
         decimal_places=6,
         null=True,
-        blank=True
+        blank=True,
     )
 
     longitude = models.DecimalField(
@@ -81,16 +83,20 @@ class ChargePoint(models.Model):
 
     serial_number = models.CharField(
         max_length=48,
-        unique=True
+        unique=True,
+        null=True,
+        blank=True,
     )
 
     comment = models.TextField(
         null=True,
-        blank=True
+        blank=True,
     )
 
     model = models.CharField(
-        max_length=48
+        max_length=48,
+        null=True,
+        blank=True,
     )
 
     password_hash = models.CharField(

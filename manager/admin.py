@@ -114,17 +114,25 @@ class ChargePointAdmin(DjangoQLSearchMixin, admin.ModelAdmin):
             {
                 'fields': (
                     'id',
-                    'description',
+                    'code',
                     'status',
+                    'connectors',
+                    'location',
+                    'websocket_url',
+                ),
+            },
+        ),
+        (
+            _('Info'),
+            {
+                'fields': (
+                    'description',
                     'manufacturer',
                     'latitude',
                     'longitude',
                     'serial_number',
                     'comment',
                     'model',
-                    'connectors',
-                    'location',
-                    'websocket_url',
                 ),
             },
         ),

@@ -68,7 +68,7 @@ class ChargePointSerializer(serializers.ModelSerializer):
 
 
 class ChargePointVerifyPasswordSerializer(serializers.ModelSerializer):
-    password = serializers.CharField(write_only=True, required=True)
+    password = serializers.CharField(write_only=True, required=False)
 
     class Meta:
         model = ChargePoint
