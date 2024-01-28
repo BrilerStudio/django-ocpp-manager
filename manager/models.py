@@ -45,7 +45,7 @@ class ChargePoint(models.Model):
         verbose_name = _('Charge Point')
         verbose_name_plural = _('Charge Points')
 
-    code = models.CharField(
+    charge_point_id = models.CharField(
         max_length=256,
         unique=True,
         null=False,
@@ -125,7 +125,7 @@ class ChargePoint(models.Model):
 
     @property
     def websocket_url(self):
-        return f'{WEBSOCKETS_URL}/{self.code}'
+        return f'{WEBSOCKETS_URL}/{self.charge_point_id}'
 
     def __str__(self):
         return f'ChargePoint (id={self.id}, status={self.status}, location={self.location})'

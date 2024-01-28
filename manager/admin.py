@@ -60,7 +60,7 @@ class LocationAdmin(DjangoQLSearchMixin, admin.ModelAdmin):
 class ChargePointAdmin(DjangoQLSearchMixin, admin.ModelAdmin):
     list_display = (
         'id',
-        'code',
+        'charge_point_id',
         'description',
         'status',
         'manufacturer',
@@ -73,7 +73,7 @@ class ChargePointAdmin(DjangoQLSearchMixin, admin.ModelAdmin):
 
     search_fields = (
         'id',
-        'code',
+        'charge_point_id',
         'description',
         'status',
         'manufacturer',
@@ -88,7 +88,7 @@ class ChargePointAdmin(DjangoQLSearchMixin, admin.ModelAdmin):
 
     list_filter = (
         'id',
-        'code',
+        'charge_point_id',
         'description',
         'status',
         'manufacturer',
@@ -114,7 +114,7 @@ class ChargePointAdmin(DjangoQLSearchMixin, admin.ModelAdmin):
             {
                 'fields': (
                     'id',
-                    'code',
+                    'charge_point_id',
                     'status',
                     'connectors',
                     'location',

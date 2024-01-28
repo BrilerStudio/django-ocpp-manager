@@ -6,7 +6,7 @@ from manager.views.charge_points import ConnectorView
 
 
 async def update_connectors(event: StatusNotificationEvent):
-    charge_point = await ChargePoint.objects.aget(id=event.charge_point_id)
+    charge_point = await ChargePoint.objects.aget(charge_point_id=event.charge_point_id)
     connector_data = ConnectorView(status=event.payload.status).model_dump_json()
     if event.payload.connector_id == 1:
         charge_point.connectors = {event.payload.connector_id: connector_data}

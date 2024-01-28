@@ -13,8 +13,7 @@ async def process_status_notification(
     await update_connectors(event)
 
     if event.payload.connector_id == 0:
-        await ChargePoint.objects.aupdate(
-            id=event.charge_point_id,
+        await ChargePoint.objects.filter(charge_point_id=event.charge_point_id).aupdate(
             status=ChargePointStatus.available,
         )
 

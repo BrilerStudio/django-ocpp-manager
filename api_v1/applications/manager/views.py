@@ -12,14 +12,14 @@ from . import serializers
 
 
 class ChargePointViewSet(ApiV1ViewMixin, viewsets.ModelViewSet):
-    lookup_field = 'code'
+    lookup_field = 'charge_point_id'
     pagination_class = AdminPageNumberPagination
     queryset = ChargePoint.objects.all().select_related('location')
     serializer_class = serializers.ChargePointSerializer
     filter_backends = [DjangoFilterBackend, ReactSearchFilter, filters.OrderingFilter]
     search_fields = [
         'id',
-        'code',
+        'charge_point_id',
         'description',
         'status',
         'manufacturer',
@@ -31,7 +31,7 @@ class ChargePointViewSet(ApiV1ViewMixin, viewsets.ModelViewSet):
         'location',
     ]
     filterset_fields = [
-        'code',
+        'charge_point_id',
         'description',
         'status',
         'manufacturer',
@@ -43,7 +43,7 @@ class ChargePointViewSet(ApiV1ViewMixin, viewsets.ModelViewSet):
         'location',
     ]
     ordering_fields = [
-        'code',
+        'charge_point_id',
         'description',
         'status',
         'manufacturer',
@@ -55,7 +55,7 @@ class ChargePointViewSet(ApiV1ViewMixin, viewsets.ModelViewSet):
         'location',
     ]
     ordering = [
-        'code',
+        'charge_point_id',
         'description',
         'status',
         'manufacturer',

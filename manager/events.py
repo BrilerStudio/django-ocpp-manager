@@ -89,8 +89,7 @@ async def process_event(
         task = await process_heartbeat(deepcopy(event))
 
     if event.action is ConnectionStatus.LOST_CONNECTION:
-        await ChargePoint.objects.aupdate(
-            id=event.charge_point_id,
+        await ChargePoint.objects.filter(charge_point_id=event.charge_point_id).aupdate(
             status=ChargePointStatus.unavailable,
         )
 

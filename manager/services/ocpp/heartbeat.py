@@ -8,8 +8,7 @@ from manager.ocpp_models.tasks.heartbeat import HeartbeatTask
 
 async def process_heartbeat(event: HeartbeatEvent) -> HeartbeatTask:
     # Do some logic here
-    await ChargePoint.objects.aupdate(
-        id=event.charge_point_id,
+    await ChargePoint.objects.filter(charge_point_id=event.charge_point_id).aupdate(
         status=ChargePointStatus.available,
     )
 

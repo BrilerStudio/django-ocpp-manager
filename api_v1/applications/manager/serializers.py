@@ -25,7 +25,7 @@ class ChargePointSerializer(serializers.ModelSerializer):
         model = ChargePoint
         fields = (
             'id',
-            'code',
+            'charge_point_id',
             'description',
             'status',
             'manufacturer',
@@ -74,7 +74,7 @@ class ChargePointVerifyPasswordSerializer(serializers.ModelSerializer):
         model = ChargePoint
         fields = (
             'id',
-            'code',
+            'charge_point_id',
             'description',
             'status',
             'manufacturer',
@@ -91,7 +91,7 @@ class ChargePointVerifyPasswordSerializer(serializers.ModelSerializer):
 
         read_only_fields = (
             'id',
-            'code',
+            'charge_point_id',
             'description',
             'status',
             'manufacturer',
