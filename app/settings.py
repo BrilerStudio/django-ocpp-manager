@@ -191,7 +191,6 @@ STATICFILES_FINDERS = (
 
 # Telegram bot settings
 RABBITMQ_PORT = env.int('RABBITMQ_PORT', default=5672)
-RABBITMQ_UI_PORT = env.int('RABBITMQ_UI_PORT', default=15672)
 RABBITMQ_USER = env('RABBITMQ_USER', default='guest')
 RABBITMQ_PASS = env('RABBITMQ_PASS', default='guest')
 RABBITMQ_HOST = env('RABBITMQ_HOST', default='rabbitmq')
@@ -204,9 +203,6 @@ REGULAR_MESSAGE_PRIORITY = 5
 LOW_MESSAGE_PRIORITY = 1
 
 WS_SERVER_PORT = env.int('WS_SERVER_PORT', default=8001)
-
-HTTP_SERVER_HOST = env('HTTP_SERVER_HOST', default='http://localhost')
-HTTP_SERVER_PORT = env.int('HTTP_SERVER_PORT', default=8000)
 
 ALLOWED_SERVER_SENT_EVENTS = [
     ConnectionStatus.LOST_CONNECTION,
@@ -221,3 +217,4 @@ LOCK_FOLDER = '/tmp/lock'
 OCPP_VERSION = env('OCPP_VERSION', default='1.6')
 
 WEBSOCKETS_URL = env('WEBSOCKETS_URL', default=f'ws://localhost:{WS_SERVER_PORT}')
+SWAGGER_URL = env('SWAGGER_URL', default=None)

@@ -49,6 +49,7 @@ schema_view = get_schema_view(
         IsAuthenticated,
         IsAdminUser,
     ],
+    url=settings.SWAGGER_URL
 )
 
 urlpatterns += [
