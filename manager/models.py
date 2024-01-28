@@ -3,6 +3,8 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 from ocpp.v16.enums import ChargePointStatus
 
+from app.settings import WEBSOCKETS_URL
+
 
 class Location(models.Model):
     class Meta:
@@ -123,7 +125,7 @@ class ChargePoint(models.Model):
 
     @property
     def websocket_url(self):
-        return f'ws://localhost/{self.code}'
+        return f'{WEBSOCKETS_URL}/{self.code}'
 
     def __str__(self):
         return f'ChargePoint (id={self.id}, status={self.status}, location={self.location})'

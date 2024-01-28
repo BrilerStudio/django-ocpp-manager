@@ -219,3 +219,5 @@ ALLOWED_SERVER_SENT_EVENTS = [
 LOCK_FOLDER = '/tmp/lock'
 
 OCPP_VERSION = env('OCPP_VERSION', default='1.6')
+
+WEBSOCKETS_URL = env('WEBSOCKETS_URL', default=f'ws://localhost:{WS_SERVER_PORT}')
