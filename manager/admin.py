@@ -3,6 +3,7 @@ from django.utils.translation import gettext_lazy as _
 from djangoql.admin import DjangoQLSearchMixin
 
 from . import models
+from .forms import ChargePointAdminForm
 
 
 @admin.register(models.Location)
@@ -67,7 +68,6 @@ class ChargePointAdmin(DjangoQLSearchMixin, admin.ModelAdmin):
         'serial_number',
         'comment',
         'model',
-        'password_hash',
         'connectors',
         'location',
     )
@@ -82,7 +82,6 @@ class ChargePointAdmin(DjangoQLSearchMixin, admin.ModelAdmin):
         'serial_number',
         'comment',
         'model',
-        'password_hash',
         'connectors',
         'location',
     )
@@ -97,7 +96,6 @@ class ChargePointAdmin(DjangoQLSearchMixin, admin.ModelAdmin):
         'serial_number',
         'comment',
         'model',
-        'password_hash',
         'connectors',
         'location',
     )
@@ -122,13 +120,21 @@ class ChargePointAdmin(DjangoQLSearchMixin, admin.ModelAdmin):
                     'serial_number',
                     'comment',
                     'model',
-                    'password_hash',
                     'connectors',
                     'location',
                 ),
             },
         ),
+        (
+            _('Password'),
+            {
+                'fields': (
+                    'password',
+                ),
+            },
+        ),
     )
+    form = ChargePointAdminForm
 
 
 @admin.register(models.Transaction)
