@@ -190,6 +190,7 @@ class TransactionAdmin(DjangoQLSearchMixin, admin.ModelAdmin):
     list_display = (
         'transaction_id',
         'tag_id',
+        'status',
         'city',
         'vehicle',
         'address',
@@ -205,6 +206,7 @@ class TransactionAdmin(DjangoQLSearchMixin, admin.ModelAdmin):
     search_fields = (
         'transaction_id',
         'tag_id',
+        'status',
         'city',
         'vehicle',
         'address',
@@ -221,6 +223,7 @@ class TransactionAdmin(DjangoQLSearchMixin, admin.ModelAdmin):
     list_filter = (
         'transaction_id',
         'tag_id',
+        'status',
         AutocompleteFilterFactory('Charge Point', 'charge_point'),
         'city',
         'vehicle',
@@ -245,6 +248,7 @@ class TransactionAdmin(DjangoQLSearchMixin, admin.ModelAdmin):
     readonly_fields = (
         'transaction_id',
         'tag_id',
+        'status',
         'meter_start',
         'meter_value_raw',
         'meter_stop',
@@ -262,6 +266,7 @@ class TransactionAdmin(DjangoQLSearchMixin, admin.ModelAdmin):
                 'fields': (
                     'transaction_id',
                     'tag_id',
+                    'status',
                     'meter_start',
                     'meter_stop',
                     'get_meter_value_raw',

@@ -2,7 +2,7 @@ from django.contrib.auth.hashers import make_password
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 
-from manager.models import ChargePoint, Location, Transaction
+from manager.models import ChargePoint, Location, Transaction, TransactionStatus
 
 
 class LocationSerializer(serializers.ModelSerializer):
@@ -144,6 +144,8 @@ class TransactionSerializer(serializers.ModelSerializer):
             'external_id',
             'start_date',
             'end_date',
+            'status',
+
         )
 
         read_only_fields = (
@@ -152,12 +154,40 @@ class TransactionSerializer(serializers.ModelSerializer):
             'meter_start',
             'meter_value_raw',
             'meter_stop',
-            'connector_id',
             'start_date',
             'end_date',
+            'status',
         )
 
     charge_point = SlugRelatedField(
         slug_field='id',
         queryset=ChargePoint.objects.all(),
     )
+
+    connector_id = serializers.IntegerField(
+        default=1,
+    )
+
+    def create(self, validated_data):
+        charge_point = validated_data.pop('charge_point')
+        connector_id = validated_data.pop('connector_id')
+
+        if not charge_point.is_enabled:
+            raise serializers.ValidationError({'charge_point_id': 'Charge point is disabled'})
+
+        if charge_point.is_available(connector_id):
+            raise serializers.ValidationError({'connector_id': 'Connector is not available'})
+
+        transaction = Transaction.objects.create(
+            city=validated_data.get('city') or charge_point.location.city if charge_point.location else 'Unknown',
+            address=validated_data.get(
+                'address'
+            ) or charge_point.location.address1 if charge_point.location else 'Unknown',
+            vehicle=validated_data.get('vehicle') or 'Unknown',
+            charge_point=charge_point,
+            connector_id=connector_id,
+            external_id=validated_data.get('external_id'),
+            status=TransactionStatus.initialized.value,
+        )
+
+        return transaction

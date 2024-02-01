@@ -147,6 +147,7 @@ class TransactionViewSet(ApiV1ViewMixin, viewsets.ReadOnlyModelViewSet, mixins.C
         'external_id',
         'start_date',
         'end_date',
+        'status',
     ]
     filterset_fields = [
         'transaction_id',
@@ -161,6 +162,7 @@ class TransactionViewSet(ApiV1ViewMixin, viewsets.ReadOnlyModelViewSet, mixins.C
         'external_id',
         'start_date',
         'end_date',
+        'status',
     ]
     ordering_fields = [
         'transaction_id',
@@ -175,10 +177,10 @@ class TransactionViewSet(ApiV1ViewMixin, viewsets.ReadOnlyModelViewSet, mixins.C
         'external_id',
         'start_date',
         'end_date',
+        'status',
     ]
 
     ordering = [
-        'id',
         'transaction_id',
         'tag_id',
         'city',
@@ -191,6 +193,7 @@ class TransactionViewSet(ApiV1ViewMixin, viewsets.ReadOnlyModelViewSet, mixins.C
         'external_id',
         'start_date',
         'end_date',
+        'status',
     ]
 
     @action(detail=True, methods=['post'], serializer_class=serializers.TransactionSerializer)

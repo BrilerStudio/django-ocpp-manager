@@ -1,10 +1,12 @@
+from enum import StrEnum
+
 from django.contrib.auth.hashers import check_password
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from ocpp.v16.enums import ChargePointStatus
 
 from app.settings import WEBSOCKETS_URL
-from manager.defaults import code_generator, tagid_generator
+from manager.defaults import tagid_generator
 
 
 class Location(models.Model):
@@ -163,6 +165,13 @@ class ChargePoint(models.Model):
         return f'ChargePoint {self.id} {self.charge_point_id} {self.status}'
 
 
+class TransactionStatus(StrEnum):
+    initialized = 'initialized'
+    requested = 'requested'
+    started = 'started'
+    stopped = 'stopped'
+
+
 class Transaction(models.Model):
     class Meta:
         verbose_name = _('Transaction')
@@ -195,7 +204,10 @@ class Transaction(models.Model):
         blank=True,
     )
 
-    meter_start = models.IntegerField()
+    meter_start = models.IntegerField(
+        null=True,
+        blank=True,
+    )
 
     meter_stop = models.IntegerField(
         null=True,
@@ -232,6 +244,12 @@ class Transaction(models.Model):
     end_date = models.DateTimeField(
         null=True,
         blank=True,
+    )
+
+    status = models.CharField(
+        max_length=50,
+        choices=[(tag, tag.value) for tag in TransactionStatus],
+        default=TransactionStatus.initialized,
     )
 
     def __str__(self):

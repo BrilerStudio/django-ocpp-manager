@@ -1,6 +1,6 @@
 from ocpp.v16.enums import AuthorizationStatus
 
-from manager.models import Transaction, ChargePoint
+from manager.models import Transaction, ChargePoint, TransactionStatus
 from manager.ocpp_events.start_transaction import StartTransactionEvent
 from manager.ocpp_models.tasks.start_transaction import StartTransactionTask
 from utils.logging import logger
@@ -12,13 +12,32 @@ async def process_start_transaction(
     logger.info(f'Start process StartTransaction (event={event})')
     charge_point = await ChargePoint.objects.aget(charge_point_id=event.charge_point_id)
 
-    transaction = await Transaction.objects.acreate(
-        city=charge_point.location.city if charge_point.location else 'Unknown',
-        address=charge_point.location.address1 if charge_point.location else 'Unknown',
-        vehicle=event.payload.id_tag,
-        meter_start=event.payload.meter_start,
-        charge_point=charge_point,
-    )
+    try:
+        transaction = await Transaction.objects.aget(
+            charge_point=charge_point,
+            tag_id=event.payload.id_tag,
+            meter_start__isnull=True,
+        )
+    except Transaction.DoesNotExist:
+        logger.info(
+            f'Reject transaction '
+            f'(charge_point_id={event.charge_point_id}, '
+            f'message_id={event.message_id},'
+            f'payload={event.payload}).',
+        )
+        return StartTransactionTask(
+            message_id=event.message_id,
+            charge_point_id=event.charge_point_id,
+            transaction_id=event.transaction_id,
+            id_tag_info={'status': AuthorizationStatus.invalid.value},
+        )
+
+    if not transaction.vehicle:
+        transaction.vehicle = event.payload.id_tag
+
+    transaction.meter_start = event.payload.meter_start
+    transaction.status = TransactionStatus.started.value
+    await transaction.asave()
 
     return StartTransactionTask(
         message_id=event.message_id,

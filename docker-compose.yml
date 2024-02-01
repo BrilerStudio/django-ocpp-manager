@@ -12,6 +12,11 @@ services:
     command: python manage.py run_ocpp_consumer
     restart: always
 
+  ocpp_transactions_manager:
+    <<: *x-backend-service
+    command: python manage.py run_ocpp_transactions_manager
+    restart: always
+
   migrate:
     <<: *x-backend-service
     command: python manage.py migrate --noinput
