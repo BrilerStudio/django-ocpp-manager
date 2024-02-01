@@ -2,7 +2,7 @@ from django import forms
 from django.contrib.auth.hashers import make_password
 from django.utils.translation import gettext_lazy as _
 
-from .models import ChargePoint
+from .models import ChargePoint, Transaction, TransactionStatus
 
 
 class ChargePointAdminForm(forms.ModelForm):
@@ -37,3 +37,14 @@ class RemoteStartTransactionForm(forms.Form):
     city = forms.CharField(label=_('City'), required=False)
 
     external_id = forms.CharField(label=_('External ID'), required=False)
+
+
+class RemoteStopTransactionForm(forms.Form):
+    transaction = forms.ModelChoiceField(
+        queryset=Transaction.objects.filter(
+            status__in=[
+                TransactionStatus.started.value,
+                TransactionStatus.stopping.value,
+            ]
+        )
+    )

@@ -46,6 +46,7 @@ services:
     volumes:
       - ./runtime:/app/runtime
     command: celery -A app worker --loglevel=debug
+    restart: always
 
 
 volumes:

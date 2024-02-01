@@ -9,5 +9,10 @@ urlpatterns = [
         'transactions/remote-start-transaction/',
         views.RemoteStartTransactionView.as_view(),
         name='remote-start-transaction',
+    ),
+    path(
+        'transactions/remote-stop-transaction/',
+        views.RemoteStopTransactionView.as_view(),
+        name='remote-stop-transaction',
     )
 ]

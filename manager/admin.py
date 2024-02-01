@@ -321,3 +321,27 @@ class TransactionAdmin(DjangoQLSearchMixin, admin.ModelAdmin):
 
     def has_change_permission(self, request, obj=None):
         return False
+
+    actions = ['remote_stop_transaction']
+
+    @admin.action(description='Remote stop transaction')
+    def remote_stop_transaction(self, request, queryset):
+        if queryset.count() != 1:
+            self.message_user(
+                request, 'Please select exactly one transaction to remote stop it.', level='error'
+            )
+        else:
+            transaction = queryset.first()
+            if transaction.status not in [
+                models.TransactionStatus.started.value,
+                models.TransactionStatus.stopping.value,
+            ]:
+                self.message_user(
+                    request, 'Please select transaction with status started or stopping.', level='error'
+                )
+                return
+            transaction_url = reverse(
+                'manager:remote-stop-transaction'
+            )
+            transaction_url = f'{transaction_url}?transaction={transaction.transaction_id}'
+            return HttpResponseRedirect(transaction_url)

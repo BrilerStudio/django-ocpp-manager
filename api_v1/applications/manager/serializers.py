@@ -180,3 +180,43 @@ class TransactionSerializer(serializers.ModelSerializer):
             connector_id=connector_id,
             **validated_data,
         )
+
+
+class TransactionStopSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Transaction
+        fields = (
+            'transaction_id',
+            'tag_id',
+            'city',
+            'vehicle',
+            'address',
+            'meter_start',
+            'meter_value_raw',
+            'meter_stop',
+            'charge_point',
+            'connector_id',
+            'external_id',
+            'start_date',
+            'end_date',
+            'status',
+        )
+
+        read_only_fields = (
+            'transaction_id',
+            'tag_id',
+            'city',
+            'vehicle',
+            'address',
+            'meter_start',
+            'meter_value_raw',
+            'meter_stop',
+            'charge_point',
+            'connector_id',
+            'external_id',
+            'start_date',
+            'end_date',
+            'status',
+        )
+
+    charge_point = ChargePointSerializer(read_only=True)

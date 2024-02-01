@@ -17,7 +17,6 @@ async def process_start_transaction(
             connector_id=event.payload.connector_id,
             charge_point=charge_point,
             tag_id=event.payload.id_tag,
-            status=TransactionStatus.initialized.value,
             meter_start__isnull=True,
         )
     except Transaction.DoesNotExist:
@@ -30,7 +29,6 @@ async def process_start_transaction(
         return StartTransactionTask(
             message_id=event.message_id,
             charge_point_id=event.charge_point_id,
-            transaction_id=event.transaction_id,
             id_tag_info={'status': AuthorizationStatus.invalid.value},
         )
     update_fields = []

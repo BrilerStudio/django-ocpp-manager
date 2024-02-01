@@ -1,12 +1,13 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, viewsets, mixins
 from rest_framework.decorators import action
-from rest_framework.exceptions import ValidationError
+from rest_framework.response import Response
 
 from api_v1.filters import ReactSearchFilter
 from api_v1.mixins import ApiV1ViewMixin
 from api_v1.paginations import AdminPageNumberPagination
 from manager.models import ChargePoint, Location, Transaction
+from manager.transactions import stop_remote_transaction
 from utils.drf_helpers import create_handler
 from . import serializers
 
@@ -196,6 +197,10 @@ class TransactionViewSet(ApiV1ViewMixin, viewsets.ReadOnlyModelViewSet, mixins.C
         'status',
     ]
 
-    @action(detail=True, methods=['post'], serializer_class=serializers.TransactionSerializer)
+    @action(detail=True, methods=['post'], serializer_class=serializers.TransactionStopSerializer)
     def stop(self, request, *args, **kwargs):
-        raise ValidationError('Not implemented yet')
+        transaction = stop_remote_transaction(self.get_object())
+
+        serializer = self.get_serializer(transaction)
+
+        return Response(serializer.data)

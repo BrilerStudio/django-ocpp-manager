@@ -1,7 +1,7 @@
 from rest_framework import serializers
 
 from manager.models import Transaction, TransactionStatus
-from manager.tasks import remote_start_transaction_task
+from manager.tasks import remote_start_transaction_task, remote_stop_transaction_task
 
 
 def create_remote_transaction(
@@ -31,5 +31,23 @@ def create_remote_transaction(
     )
 
     remote_start_transaction_task.delay(transaction.transaction_id)
+
+    return transaction
+
+
+def stop_remote_transaction(transaction: Transaction):
+    if transaction.status == TransactionStatus.stopped.value:
+        raise serializers.ValidationError({'transaction_id': 'Transaction is already stopped'})
+
+    Transaction.objects.filter(
+        transaction_id=transaction.transaction_id,
+        status=TransactionStatus.started.value,
+    ).update(
+        status=TransactionStatus.stopping.value,
+    )
+
+    remote_stop_transaction_task.delay(transaction.transaction_id)
+
+    transaction.refresh_from_db()
 
     return transaction

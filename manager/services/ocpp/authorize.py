@@ -14,7 +14,6 @@ async def process_authorize(event: AuthorizeEvent) -> AuthorizeTask:
         transaction = await Transaction.objects.aget(
             charge_point=charge_point,
             tag_id=event.payload.id_tag,
-            status=TransactionStatus.initialized.value,
             meter_start__isnull=True,
         )
     except Transaction.DoesNotExist:

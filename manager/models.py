@@ -170,6 +170,7 @@ class TransactionStatus(StrEnum):
     initialized = 'initialized'
     requested = 'requested'
     started = 'started'
+    stopping = 'stopping'
     stopped = 'stopped'
 
 
@@ -185,6 +186,7 @@ class Transaction(models.Model):
     tag_id = models.CharField(
         max_length=20,
         default=tagid_generator,
+        help_text='One time tag id only for this charge point and connector.',
     )
 
     city = models.CharField(

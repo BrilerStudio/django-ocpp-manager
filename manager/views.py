@@ -5,9 +5,9 @@ from django.views.generic import FormView
 from ocpp.v16.enums import ChargePointStatus
 from rest_framework import serializers
 
-from manager.forms import RemoteStartTransactionForm
-from manager.models import ChargePoint
-from manager.transactions import create_remote_transaction
+from manager.forms import RemoteStartTransactionForm, RemoteStopTransactionForm
+from manager.models import ChargePoint, Transaction, TransactionStatus
+from manager.transactions import create_remote_transaction, stop_remote_transaction
 
 
 class RemoteStartTransactionView(FormView):
@@ -54,4 +54,44 @@ class RemoteStartTransactionView(FormView):
     def get_context_data(self, **kwargs):
         data = super().get_context_data(**kwargs)
         data['title'] = 'Remote Start Transaction'
+        return data
+
+
+class RemoteStopTransactionView(FormView):
+    template_name = 'remote_stop_transaction.html'
+    form_class = RemoteStopTransactionForm
+
+    def get_initial(self):
+        initial = super().get_initial()
+        transaction_id = self.request.GET.get('transaction')
+        if transaction_id:
+            transaction = get_object_or_404(Transaction, pk=transaction_id)
+        else:
+            transaction = Transaction.objects.filter(
+                status__in=[
+                    TransactionStatus.started.value,
+                    TransactionStatus.stopping.value,
+                ]
+            ).first()
+
+        if not transaction:
+            return initial
+
+        initial['transaction'] = transaction
+
+        return initial
+
+    def form_valid(self, form):
+        data = form.cleaned_data
+        try:
+            transaction = stop_remote_transaction(data['transaction'])
+        except serializers.ValidationError as e:
+            form.add_error(None, str(e))
+            return self.form_invalid(form)
+
+        return HttpResponseRedirect(reverse('admin:manager_transaction_change', args=(transaction.transaction_id,)))
+
+    def get_context_data(self, **kwargs):
+        data = super().get_context_data(**kwargs)
+        data['title'] = 'Remote Stop Transaction'
         return data
