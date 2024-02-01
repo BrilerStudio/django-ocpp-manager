@@ -1,8 +1,8 @@
 from django.contrib.auth.hashers import make_password
 from django.db import transaction
 from rest_framework import serializers
-from rest_framework.relations import SlugRelatedField
 
+from api_v1.schemas import CustomSlugRelatedField
 from manager.models import ChargePoint, Location, Transaction
 from manager.transactions import create_remote_transaction
 
@@ -46,9 +46,10 @@ class ChargePointSerializer(serializers.ModelSerializer):
             'updated_at',
         )
 
-    location = SlugRelatedField(
+    location = CustomSlugRelatedField(
         slug_field='id',
         queryset=Location.objects.all(),
+        serializer_class=LocationSerializer,
         required=False,
     )
 
@@ -101,7 +102,7 @@ class ChargePointVerifyPasswordSerializer(serializers.ModelSerializer):
             'id',
             'charge_point_id',
             'description',
-            'status',
+            'is_enabled',
             'manufacturer',
             'latitude',
             'longitude',
@@ -161,9 +162,11 @@ class TransactionSerializer(serializers.ModelSerializer):
             'status',
         )
 
-    charge_point = SlugRelatedField(
+    charge_point = CustomSlugRelatedField(
         slug_field='id',
         queryset=ChargePoint.objects.all(),
+        serializer_class=ChargePointSerializer,
+        required=True,
     )
 
     connector_id = serializers.IntegerField(
@@ -219,4 +222,9 @@ class TransactionStopSerializer(serializers.ModelSerializer):
             'status',
         )
 
-    charge_point = ChargePointSerializer(read_only=True)
+    charge_point = CustomSlugRelatedField(
+        slug_field='id',
+        queryset=ChargePoint.objects.all(),
+        serializer_class=ChargePointSerializer,
+        required=True,
+    )
