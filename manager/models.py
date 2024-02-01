@@ -145,6 +145,12 @@ class ChargePoint(models.Model):
         editable=False,
     )
 
+    last_seen_at = models.DateTimeField(
+        null=True,
+        blank=True,
+        editable=False,
+    )
+
     @property
     def connectors_count(self):
         return len(self.connectors)

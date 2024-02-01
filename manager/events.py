@@ -2,6 +2,7 @@ from copy import deepcopy
 from functools import wraps
 from typing import Callable, Union
 
+from django.utils import timezone
 from ocpp.v16.enums import Action, ChargePointStatus
 
 from app.fields import ConnectionStatus
@@ -92,6 +93,10 @@ async def process_event(
         await ChargePoint.objects.filter(charge_point_id=event.charge_point_id).aupdate(
             status=ChargePointStatus.unavailable,
         )
+
+    await ChargePoint.objects.filter(charge_point_id=event.charge_point_id).aupdate(
+        last_seen_at=timezone.now(),
+    )
 
     if task:
         await publish(task.model_dump_json(), to=task.exchange, priority=task.priority)

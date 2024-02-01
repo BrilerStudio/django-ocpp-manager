@@ -31,6 +31,7 @@ class ChargePointViewSet(ApiV1ViewMixin, viewsets.ModelViewSet):
         'location',
         'created_at',
         'updated_at',
+        'last_seen_at',
     ]
     filterset_fields = [
         'id',
@@ -45,6 +46,7 @@ class ChargePointViewSet(ApiV1ViewMixin, viewsets.ModelViewSet):
         'location',
         'created_at',
         'updated_at',
+        'last_seen_at',
     ]
     ordering_fields = [
         'id',
@@ -59,6 +61,7 @@ class ChargePointViewSet(ApiV1ViewMixin, viewsets.ModelViewSet):
         'location',
         'created_at',
         'updated_at',
+        'last_seen_at',
     ]
     ordering = [
         'id',
@@ -73,6 +76,7 @@ class ChargePointViewSet(ApiV1ViewMixin, viewsets.ModelViewSet):
         'location',
         'created_at',
         'updated_at',
+        'last_seen_at',
     ]
 
     @action(detail=True, methods=['post'], serializer_class=serializers.ChargePointVerifyPasswordSerializer)

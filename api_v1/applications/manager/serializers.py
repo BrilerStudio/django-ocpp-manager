@@ -44,6 +44,7 @@ class ChargePointSerializer(serializers.ModelSerializer):
             'websocket_url',
             'created_at',
             'updated_at',
+            'last_seen_at',
         )
 
     location = CustomSlugRelatedField(
@@ -96,6 +97,7 @@ class ChargePointVerifyPasswordSerializer(serializers.ModelSerializer):
             'websocket_url',
             'created_at',
             'updated_at',
+            'last_seen_at',
         )
 
         read_only_fields = (
@@ -113,6 +115,7 @@ class ChargePointVerifyPasswordSerializer(serializers.ModelSerializer):
             'websocket_url',
             'created_at',
             'updated_at',
+            'last_seen_at',
         )
 
     location = LocationSerializer(read_only=True)

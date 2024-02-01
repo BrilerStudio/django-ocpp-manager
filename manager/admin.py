@@ -83,6 +83,7 @@ class ChargePointAdmin(DjangoQLSearchMixin, admin.ModelAdmin):
         'location',
         'created_at',
         'updated_at',
+        'last_seen_at',
     )
 
     search_fields = (
@@ -100,6 +101,7 @@ class ChargePointAdmin(DjangoQLSearchMixin, admin.ModelAdmin):
         'location',
         'created_at',
         'updated_at',
+        'last_seen_at',
     )
 
     list_filter = (
@@ -117,6 +119,7 @@ class ChargePointAdmin(DjangoQLSearchMixin, admin.ModelAdmin):
         AutocompleteFilterFactory('Location', 'location'),
         'created_at',
         'updated_at',
+        'last_seen_at',
     )
 
     autocomplete_fields = (
@@ -137,6 +140,7 @@ class ChargePointAdmin(DjangoQLSearchMixin, admin.ModelAdmin):
         'updated_at',
         'get_meter_value_raw',
         'connectors_count',
+        'last_seen_at',
     )
 
     fieldsets = (
@@ -154,6 +158,7 @@ class ChargePointAdmin(DjangoQLSearchMixin, admin.ModelAdmin):
                     'websocket_url',
                     'created_at',
                     'updated_at',
+                    'last_seen_at',
                 ),
             },
         ),
