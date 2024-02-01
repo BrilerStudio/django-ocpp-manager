@@ -14,8 +14,10 @@ async def process_start_transaction(
 
     try:
         transaction = await Transaction.objects.aget(
+            connector_id=event.payload.connector_id,
             charge_point=charge_point,
             tag_id=event.payload.id_tag,
+            status=TransactionStatus.initialized.value,
             meter_start__isnull=True,
         )
     except Transaction.DoesNotExist:
@@ -31,13 +33,18 @@ async def process_start_transaction(
             transaction_id=event.transaction_id,
             id_tag_info={'status': AuthorizationStatus.invalid.value},
         )
-
+    update_fields = []
     if not transaction.vehicle:
+        update_fields.append('vehicle')
         transaction.vehicle = event.payload.id_tag
 
     transaction.meter_start = event.payload.meter_start
     transaction.status = TransactionStatus.started.value
-    await transaction.asave()
+    transaction.connector_id = event.payload.connector_id
+    update_fields += ['meter_start', 'status', 'connector_id']
+    await transaction.asave(
+        update_fields=update_fields,
+    )
 
     return StartTransactionTask(
         message_id=event.message_id,

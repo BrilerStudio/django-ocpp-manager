@@ -16,3 +16,5 @@ async def publish(data: str, to: str, priority=None) -> None:
         ),
         routing_key=to,
     )
+
+

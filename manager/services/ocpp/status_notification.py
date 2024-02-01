@@ -14,10 +14,7 @@ async def process_status_notification(
     connector_data = {
         'status': event.payload.status
     }
-    if event.payload.connector_id == 1:
-        charge_point.connectors = {event.payload.connector_id: connector_data}
-    else:
-        charge_point.connectors.update({event.payload.connector_id: connector_data})
+    charge_point.connectors[event.payload.connector_id] = connector_data
     await charge_point.asave()
 
     if event.payload.connector_id == 0:

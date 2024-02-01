@@ -1,6 +1,6 @@
 from ocpp.v16.enums import AuthorizationStatus
 
-from manager.models import ChargePoint, Transaction
+from manager.models import ChargePoint, Transaction, TransactionStatus
 from manager.ocpp_events.authorize import AuthorizeEvent
 from manager.ocpp_models.tasks.authorize import AuthorizeTask
 from utils.logging import logger
@@ -14,6 +14,7 @@ async def process_authorize(event: AuthorizeEvent) -> AuthorizeTask:
         transaction = await Transaction.objects.aget(
             charge_point=charge_point,
             tag_id=event.payload.id_tag,
+            status=TransactionStatus.initialized.value,
             meter_start__isnull=True,
         )
     except Transaction.DoesNotExist:
