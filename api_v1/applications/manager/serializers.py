@@ -14,7 +14,9 @@ class LocationSerializer(serializers.ModelSerializer):
             'city',
             'address1',
             'address2',
-            'comment',
+            'description',
+            'created_at',
+            'updated_at',
         )
 
 
@@ -27,22 +29,25 @@ class ChargePointSerializer(serializers.ModelSerializer):
             'id',
             'charge_point_id',
             'description',
-            'status',
+            'is_enabled',
             'manufacturer',
             'latitude',
             'longitude',
             'serial_number',
-            'comment',
             'model',
             'connectors',
-            'password',
+            'connectors_count',
             'location',
+            'password',
             'websocket_url',
+            'created_at',
+            'updated_at',
         )
 
     location = SlugRelatedField(
         slug_field='id',
         queryset=Location.objects.all(),
+        required=False,
     )
 
     def create(self, validated_data):
@@ -76,17 +81,18 @@ class ChargePointVerifyPasswordSerializer(serializers.ModelSerializer):
             'id',
             'charge_point_id',
             'description',
-            'status',
+            'is_enabled',
             'manufacturer',
             'latitude',
             'longitude',
             'serial_number',
-            'comment',
             'model',
             'connectors',
             'location',
             'password',
             'websocket_url',
+            'created_at',
+            'updated_at',
         )
 
         read_only_fields = (
@@ -98,17 +104,21 @@ class ChargePointVerifyPasswordSerializer(serializers.ModelSerializer):
             'latitude',
             'longitude',
             'serial_number',
-            'comment',
             'model',
             'connectors',
             'location',
             'websocket_url',
+            'created_at',
+            'updated_at',
         )
 
     location = LocationSerializer(read_only=True)
 
     def create(self, validated_data):
         charge_point = self.context['charge_point']
+
+        if not charge_point.is_enabled:
+            raise serializers.ValidationError({'charge_point_id': 'Charge point is disabled'})
 
         password = validated_data.pop('password', None)
         if not charge_point.check_password(password):
@@ -122,16 +132,7 @@ class TransactionSerializer(serializers.ModelSerializer):
         model = Transaction
         fields = (
             'transaction_id',
-            'city',
-            'vehicle',
-            'address',
-            'meter_start',
-            'meter_stop',
-            'charge_point',
-        )
-
-        read_only_fields = (
-            'transaction_id',
+            'tag_id',
             'city',
             'vehicle',
             'address',
@@ -139,6 +140,21 @@ class TransactionSerializer(serializers.ModelSerializer):
             'meter_value_raw',
             'meter_stop',
             'charge_point',
+            'connector_id',
+            'external_id',
+            'start_date',
+            'end_date',
+        )
+
+        read_only_fields = (
+            'transaction_id',
+            'tag_id',
+            'meter_start',
+            'meter_value_raw',
+            'meter_stop',
+            'connector_id',
+            'start_date',
+            'end_date',
         )
 
     charge_point = SlugRelatedField(

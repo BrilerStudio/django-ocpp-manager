@@ -1,3 +1,4 @@
+from admin_auto_filters.filters import AutocompleteFilterFactory
 from django.contrib import admin
 from django.utils.translation import gettext_lazy as _
 from djangoql.admin import DjangoQLSearchMixin
@@ -15,7 +16,9 @@ class LocationAdmin(DjangoQLSearchMixin, admin.ModelAdmin):
         'city',
         'address1',
         'address2',
-        'comment',
+        'description',
+        'created_at',
+        'updated_at',
     )
 
     search_fields = (
@@ -24,7 +27,9 @@ class LocationAdmin(DjangoQLSearchMixin, admin.ModelAdmin):
         'city',
         'address1',
         'address2',
-        'comment',
+        'description',
+        'created_at',
+        'updated_at',
     )
 
     list_filter = (
@@ -33,11 +38,15 @@ class LocationAdmin(DjangoQLSearchMixin, admin.ModelAdmin):
         'city',
         'address1',
         'address2',
-        'comment',
+        'description',
+        'created_at',
+        'updated_at',
     )
 
     readonly_fields = (
         'id',
+        'created_at',
+        'updated_at',
     )
 
     fieldsets = (
@@ -50,7 +59,9 @@ class LocationAdmin(DjangoQLSearchMixin, admin.ModelAdmin):
                     'city',
                     'address1',
                     'address2',
-                    'comment',
+                    'description',
+                    'created_at',
+                    'updated_at',
                 ),
             },
         ),
@@ -62,47 +73,51 @@ class ChargePointAdmin(DjangoQLSearchMixin, admin.ModelAdmin):
     list_display = (
         'id',
         'charge_point_id',
-        'description',
+        'is_enabled',
         'status',
         'manufacturer',
-        'latitude',
-        'longitude',
         'serial_number',
         'model',
         'location',
+        'created_at',
+        'updated_at',
     )
 
     search_fields = (
         'id',
         'charge_point_id',
+        'is_enabled',
         'description',
         'status',
         'manufacturer',
         'latitude',
         'longitude',
         'serial_number',
-        'comment',
         'model',
         'connectors',
         'location',
+        'created_at',
+        'updated_at',
     )
 
     list_filter = (
         'id',
         'charge_point_id',
+        'is_enabled',
         'description',
         'status',
         'manufacturer',
         'latitude',
         'longitude',
         'serial_number',
-        'comment',
         'model',
         'connectors',
-        'location',
+        AutocompleteFilterFactory('Location', 'location'),
+        'created_at',
+        'updated_at',
     )
 
-    list_select_related = (
+    autocomplete_fields = (
         'location',
     )
 
@@ -116,6 +131,10 @@ class ChargePointAdmin(DjangoQLSearchMixin, admin.ModelAdmin):
         'status',
         'connectors',
         'websocket_url',
+        'created_at',
+        'updated_at',
+        'get_meter_value_raw',
+        'connectors_count',
     )
 
     fieldsets = (
@@ -125,10 +144,14 @@ class ChargePointAdmin(DjangoQLSearchMixin, admin.ModelAdmin):
                 'fields': (
                     'id',
                     'charge_point_id',
+                    'is_enabled',
                     'status',
-                    'connectors',
+                    'get_meter_value_raw',
+                    'connectors_count',
                     'location',
                     'websocket_url',
+                    'created_at',
+                    'updated_at',
                 ),
             },
         ),
@@ -141,7 +164,6 @@ class ChargePointAdmin(DjangoQLSearchMixin, admin.ModelAdmin):
                     'latitude',
                     'longitude',
                     'serial_number',
-                    'comment',
                     'model',
                 ),
             },
@@ -157,55 +179,80 @@ class ChargePointAdmin(DjangoQLSearchMixin, admin.ModelAdmin):
     )
     form = ChargePointAdminForm
 
+    @admin.display(description='Connectors')
+    def get_meter_value_raw(self, obj: models.ChargePoint):
+        if obj.connectors:
+            return pretty_json_html(obj.connectors)
+
 
 @admin.register(models.Transaction)
 class TransactionAdmin(DjangoQLSearchMixin, admin.ModelAdmin):
     list_display = (
         'transaction_id',
+        'tag_id',
         'city',
         'vehicle',
         'address',
         'meter_start',
         'meter_stop',
         'charge_point',
+        'connector_id',
+        'external_id',
+        'start_date',
+        'end_date',
     )
 
     search_fields = (
         'transaction_id',
+        'tag_id',
         'city',
         'vehicle',
         'address',
         'meter_start',
         'meter_stop',
+        'meter_value_raw'
         'charge_point',
+        'connector_id',
+        'external_id',
+        'start_date',
+        'end_date',
     )
 
     list_filter = (
         'transaction_id',
+        'tag_id',
+        AutocompleteFilterFactory('Charge Point', 'charge_point'),
         'city',
         'vehicle',
         'address',
         'meter_start',
         'meter_stop',
-        'charge_point',
+        'connector_id',
+        'external_id',
+        'start_date',
+        'end_date',
     )
 
-    readonly_fields = (
-        'city',
-        'vehicle',
-        'address',
-        'meter_start',
-        'meter_stop',
-        'charge_point',
-        'transaction_id',
-    )
-
-    list_select_related = (
+    autocomplete_fields = (
         'charge_point',
     )
 
     list_display_links = (
         'transaction_id',
+        'tag_id',
+    )
+
+    readonly_fields = (
+        'transaction_id',
+        'tag_id',
+        'meter_start',
+        'meter_value_raw',
+        'meter_stop',
+        'charge_point',
+        'connector_id',
+        'start_date',
+        'end_date',
+        'get_meter_value_raw',
     )
 
     fieldsets = (
@@ -214,13 +261,25 @@ class TransactionAdmin(DjangoQLSearchMixin, admin.ModelAdmin):
             {
                 'fields': (
                     'transaction_id',
+                    'tag_id',
+                    'meter_start',
+                    'meter_stop',
+                    'get_meter_value_raw',
+                    'charge_point',
+                    'connector_id',
+                    'start_date',
+                    'end_date',
+                ),
+            },
+        ),
+        (
+            _('Info'),
+            {
+                'fields': (
                     'city',
                     'vehicle',
                     'address',
-                    'meter_start',
-                    'get_meter_value_raw',
-                    'meter_stop',
-                    'charge_point',
+                    'external_id',
                 ),
             },
         ),

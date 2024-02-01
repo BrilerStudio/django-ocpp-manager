@@ -1,5 +1,5 @@
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, viewsets
+from rest_framework import filters, viewsets, mixins
 from rest_framework.decorators import action
 from rest_framework.exceptions import ValidationError
 
@@ -21,50 +21,57 @@ class ChargePointViewSet(ApiV1ViewMixin, viewsets.ModelViewSet):
         'id',
         'charge_point_id',
         'description',
-        'status',
+        'is_enabled',
         'manufacturer',
         'latitude',
         'longitude',
         'serial_number',
-        'comment',
         'model',
         'location',
+        'created_at',
+        'updated_at',
     ]
     filterset_fields = [
+        'id',
         'charge_point_id',
         'description',
-        'status',
+        'is_enabled',
         'manufacturer',
         'latitude',
         'longitude',
         'serial_number',
-        'comment',
         'model',
         'location',
+        'created_at',
+        'updated_at',
     ]
     ordering_fields = [
+        'id',
         'charge_point_id',
         'description',
-        'status',
+        'is_enabled',
         'manufacturer',
         'latitude',
         'longitude',
         'serial_number',
-        'comment',
         'model',
         'location',
+        'created_at',
+        'updated_at',
     ]
     ordering = [
+        'id',
         'charge_point_id',
         'description',
-        'status',
+        'is_enabled',
         'manufacturer',
         'latitude',
         'longitude',
         'serial_number',
-        'comment',
         'model',
         'location',
+        'created_at',
+        'updated_at',
     ]
 
     @action(detail=True, methods=['post'], serializer_class=serializers.ChargePointVerifyPasswordSerializer)
@@ -86,7 +93,9 @@ class LocationViewSet(ApiV1ViewMixin, viewsets.ModelViewSet):
         'city',
         'address1',
         'address2',
-        'comment',
+        'description',
+        'created_at',
+        'updated_at',
     ]
     filterset_fields = [
         'id',
@@ -94,7 +103,9 @@ class LocationViewSet(ApiV1ViewMixin, viewsets.ModelViewSet):
         'city',
         'address1',
         'address2',
-        'comment',
+        'description',
+        'created_at',
+        'updated_at',
     ]
     ordering_fields = [
         'id',
@@ -102,7 +113,9 @@ class LocationViewSet(ApiV1ViewMixin, viewsets.ModelViewSet):
         'city',
         'address1',
         'address2',
-        'comment',
+        'description',
+        'created_at',
+        'updated_at',
     ]
     ordering = [
         'id',
@@ -110,59 +123,75 @@ class LocationViewSet(ApiV1ViewMixin, viewsets.ModelViewSet):
         'city',
         'address1',
         'address2',
-        'comment',
+        'description',
+        'created_at',
+        'updated_at',
     ]
 
 
-class TransactionViewSet(ApiV1ViewMixin, viewsets.ReadOnlyModelViewSet):
+class TransactionViewSet(ApiV1ViewMixin, viewsets.ReadOnlyModelViewSet, mixins.CreateModelMixin):
     pagination_class = AdminPageNumberPagination
     queryset = Transaction.objects.all().select_related('charge_point', 'charge_point__location')
     serializer_class = serializers.TransactionSerializer
     filter_backends = [DjangoFilterBackend, ReactSearchFilter, filters.OrderingFilter]
     search_fields = [
         'transaction_id',
+        'tag_id',
         'city',
         'vehicle',
         'address',
         'meter_start',
         'meter_stop',
         'charge_point',
+        'connector_id',
+        'external_id',
+        'start_date',
+        'end_date',
     ]
     filterset_fields = [
         'transaction_id',
+        'tag_id',
         'city',
         'vehicle',
         'address',
         'meter_start',
         'meter_stop',
         'charge_point',
+        'connector_id',
+        'external_id',
+        'start_date',
+        'end_date',
     ]
     ordering_fields = [
         'transaction_id',
+        'tag_id',
         'city',
         'vehicle',
         'address',
         'meter_start',
         'meter_stop',
         'charge_point',
+        'connector_id',
+        'external_id',
+        'start_date',
+        'end_date',
     ]
+
     ordering = [
+        'id',
         'transaction_id',
+        'tag_id',
         'city',
         'vehicle',
         'address',
         'meter_start',
         'meter_stop',
-        'charge_point_id',
+        'charge_point',
+        'connector_id',
+        'external_id',
+        'start_date',
+        'end_date',
     ]
-
-    @action(detail=True, methods=['post'], serializer_class=serializers.TransactionSerializer)
-    def approve(self, request, *args, **kwargs):
-        raise ValidationError('Not implemented yet')
-
-    @action(detail=True, methods=['post'], serializer_class=serializers.TransactionSerializer)
-    def reject(self, request, *args, **kwargs):
-        raise ValidationError('Not implemented yet')
 
     @action(detail=True, methods=['post'], serializer_class=serializers.TransactionSerializer)
     def stop(self, request, *args, **kwargs):

@@ -4,6 +4,7 @@ from django.utils.translation import gettext_lazy as _
 from ocpp.v16.enums import ChargePointStatus
 
 from app.settings import WEBSOCKETS_URL
+from manager.defaults import code_generator, tagid_generator
 
 
 class Location(models.Model):
@@ -21,19 +22,30 @@ class Location(models.Model):
     )
 
     address1 = models.CharField(
-        max_length=48
+        max_length=256,
     )
 
     address2 = models.CharField(
-        max_length=100,
+        max_length=256,
         null=True,
         blank=True
     )
 
-    comment = models.TextField(
-        max_length=200,
+    description = models.TextField(
         null=True,
-        blank=True
+        blank=True,
+    )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        blank=True,
+        editable=False,
+    )
+
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        blank=True,
+        editable=False,
     )
 
     def __str__(self):
@@ -52,6 +64,10 @@ class ChargePoint(models.Model):
         blank=False,
     )
 
+    is_enabled = models.BooleanField(
+        default=True,
+    )
+
     description = models.TextField(
         null=True,
         blank=True,
@@ -64,7 +80,7 @@ class ChargePoint(models.Model):
     )
 
     manufacturer = models.CharField(
-        max_length=48,
+        max_length=256,
         null=True,
         blank=True,
     )
@@ -90,19 +106,14 @@ class ChargePoint(models.Model):
         blank=True,
     )
 
-    comment = models.TextField(
-        null=True,
-        blank=True,
-    )
-
     model = models.CharField(
-        max_length=48,
+        max_length=256,
         null=True,
         blank=True,
     )
 
     password_hash = models.CharField(
-        max_length=128,
+        max_length=256,
         null=True,
         blank=True
     )
@@ -119,6 +130,27 @@ class ChargePoint(models.Model):
         null=True,
         blank=True,
     )
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        blank=True,
+        editable=False,
+    )
+
+    updated_at = models.DateTimeField(
+        auto_now=True,
+        blank=True,
+        editable=False,
+    )
+
+    @property
+    def connectors_count(self):
+        return len(self.connectors)
+
+    def is_available(self, connector_id: int = 0):
+        if connector_id:
+            return self.connectors.get(connector_id, {}).get('status') == ChargePointStatus.available
+        return self.status == ChargePointStatus.available
 
     def check_password(self, password):
         return not self.password_hash or check_password(password, self.password_hash)
@@ -137,19 +169,30 @@ class Transaction(models.Model):
         verbose_name_plural = _('Transactions')
 
     transaction_id = models.AutoField(
-        primary_key=True
+        primary_key=True,
+    )
+
+    tag_id = models.CharField(
+        max_length=20,
+        default=tagid_generator,
     )
 
     city = models.CharField(
-        max_length=48
+        max_length=48,
+        null=True,
+        blank=True,
     )
 
     vehicle = models.CharField(
-        max_length=48
+        max_length=256,
+        null=True,
+        blank=True,
     )
 
     address = models.CharField(
-        max_length=100
+        max_length=256,
+        null=True,
+        blank=True,
     )
 
     meter_start = models.IntegerField()
@@ -171,3 +214,25 @@ class Transaction(models.Model):
         on_delete=models.CASCADE,
         related_name='transactions',
     )
+
+    connector_id = models.IntegerField(
+        default=1,
+    )
+
+    external_id = models.CharField(
+        max_length=256,
+        null=True,
+        blank=True,
+    )
+
+    start_date = models.DateTimeField(
+        auto_now_add=True
+    )
+
+    end_date = models.DateTimeField(
+        null=True,
+        blank=True,
+    )
+
+    def __str__(self):
+        return f'Transaction {self.transaction_id}'

@@ -52,6 +52,8 @@ INSTALLED_APPS = [
     'corsheaders',
     'debug_toolbar',
     'djangoql',
+    'admin_auto_filters',
+
     'manager',
 ]
 
