@@ -191,7 +191,7 @@ STATICFILES_FINDERS = (
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
-# Telegram bot settings
+# Celery
 RABBITMQ_PORT = env.int('RABBITMQ_PORT', default=5672)
 RABBITMQ_USER = env('RABBITMQ_USER', default='guest')
 RABBITMQ_PASS = env('RABBITMQ_PASS', default='guest')
@@ -199,6 +199,9 @@ RABBITMQ_HOST = env('RABBITMQ_HOST', default='rabbitmq')
 
 EVENTS_EXCHANGE_NAME = env('EVENTS_EXCHANGE_NAME', default='events')
 TASKS_EXCHANGE_NAME = env('TASKS_EXCHANGE_NAME', default='tasks')
+
+# Celery
+BROKER_URL = f'amqp://{RABBITMQ_USER}:{RABBITMQ_PASS}@{RABBITMQ_HOST}:{RABBITMQ_PORT}/'
 
 MAX_MESSAGE_PRIORITY = 10
 REGULAR_MESSAGE_PRIORITY = 5

@@ -16,7 +16,8 @@ async def process_stop_transaction(
 
     await Transaction.objects.filter(transaction_id=event.payload.transaction_id, tag_id=event.payload.id_tag).aupdate(
         meter_stop=event.payload.meter_stop,
-        status=TransactionStatus.started.value
+        status=TransactionStatus.stopped.value,
+        end_date=event.payload.timestamp,
     )
 
     return StopTransactionTask(

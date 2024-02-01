@@ -1,8 +1,10 @@
 from django.contrib.auth.hashers import make_password
+from django.db import transaction
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 
 from manager.models import ChargePoint, Location, Transaction, TransactionStatus
+from manager.tasks import remote_start_transaction_task
 
 
 class LocationSerializer(serializers.ModelSerializer):
@@ -168,6 +170,7 @@ class TransactionSerializer(serializers.ModelSerializer):
         default=1,
     )
 
+    @transaction.atomic()
     def create(self, validated_data):
         charge_point = validated_data.pop('charge_point')
         connector_id = validated_data.pop('connector_id')
@@ -175,7 +178,7 @@ class TransactionSerializer(serializers.ModelSerializer):
         if not charge_point.is_enabled:
             raise serializers.ValidationError({'charge_point_id': 'Charge point is disabled'})
 
-        if charge_point.is_available(connector_id):
+        if not charge_point.is_available(connector_id):
             raise serializers.ValidationError({'connector_id': 'Connector is not available'})
 
         transaction = Transaction.objects.create(
@@ -189,5 +192,7 @@ class TransactionSerializer(serializers.ModelSerializer):
             external_id=validated_data.get('external_id'),
             status=TransactionStatus.initialized.value,
         )
+
+        remote_start_transaction_task.delay(transaction.transaction_id)
 
         return transaction

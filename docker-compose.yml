@@ -12,11 +12,6 @@ services:
     command: python manage.py run_ocpp_consumer
     restart: always
 
-  ocpp_transactions_manager:
-    <<: *x-backend-service
-    command: python manage.py run_ocpp_transactions_manager
-    restart: always
-
   migrate:
     <<: *x-backend-service
     command: python manage.py migrate --noinput
@@ -45,6 +40,12 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     command: --interval 30 django-ocpp-manager
+
+  celery:
+    <<: *x-backend-service
+    volumes:
+      - ./runtime:/app/runtime
+    command: celery -A app worker --loglevel=debug
 
 
 volumes:

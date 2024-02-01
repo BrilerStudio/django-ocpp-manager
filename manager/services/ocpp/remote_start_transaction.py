@@ -1,5 +1,7 @@
 import uuid
 
+from app.queue.publisher import publish
+from app.settings import REGULAR_MESSAGE_PRIORITY
 from manager.models import Transaction, TransactionStatus
 from manager.ocpp_models.tasks.remote_start_transaction import RemoteStartTransactionTask
 from utils.logging import logger
@@ -7,7 +9,7 @@ from utils.logging import logger
 
 async def remote_start_transaction(
         transaction: Transaction,
-) -> RemoteStartTransactionTask:
+):
     logger.info(f'Remote start transaction (transaction={transaction})')
 
     await Transaction.objects.filter(
@@ -17,9 +19,12 @@ async def remote_start_transaction(
         status=TransactionStatus.requested.value,
     )
 
-    return RemoteStartTransactionTask(
+    task = RemoteStartTransactionTask(
         charge_point_id=transaction.charge_point.charge_point_id,
         id_tag=transaction.tag_id,
         connector_id=transaction.connector_id,
         message_id=str(uuid.uuid4()),
+        priority=REGULAR_MESSAGE_PRIORITY,
     )
+
+    await publish(task.model_dump_json(), to=task.exchange, priority=task.priority)
