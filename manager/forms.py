@@ -23,3 +23,17 @@ class ChargePointAdminForm(forms.ModelForm):
             instance.save()
 
         return instance
+
+
+class RemoteStartTransactionForm(forms.Form):
+    charge_point = forms.ModelChoiceField(queryset=ChargePoint.objects.all())
+
+    connector_id = forms.IntegerField(label=_('Connector ID'), required=True)
+
+    vehicle = forms.CharField(label=_('Vehicle'), required=False)
+
+    address = forms.CharField(label=_('Address'), required=False)
+
+    city = forms.CharField(label=_('City'), required=False)
+
+    external_id = forms.CharField(label=_('External ID'), required=False)

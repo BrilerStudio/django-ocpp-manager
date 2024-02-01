@@ -3,8 +3,8 @@ from django.db import transaction
 from rest_framework import serializers
 from rest_framework.relations import SlugRelatedField
 
-from manager.models import ChargePoint, Location, Transaction, TransactionStatus
-from manager.tasks import remote_start_transaction_task
+from manager.models import ChargePoint, Location, Transaction
+from manager.transactions import create_remote_transaction
 
 
 class LocationSerializer(serializers.ModelSerializer):
@@ -175,24 +175,8 @@ class TransactionSerializer(serializers.ModelSerializer):
         charge_point = validated_data.pop('charge_point')
         connector_id = validated_data.pop('connector_id')
 
-        if not charge_point.is_enabled:
-            raise serializers.ValidationError({'charge_point_id': 'Charge point is disabled'})
-
-        if not charge_point.is_available(connector_id):
-            raise serializers.ValidationError({'connector_id': 'Connector is not available'})
-
-        transaction = Transaction.objects.create(
-            city=validated_data.get('city') or charge_point.location.city if charge_point.location else 'Unknown',
-            address=validated_data.get(
-                'address'
-            ) or charge_point.location.address1 if charge_point.location else 'Unknown',
-            vehicle=validated_data.get('vehicle') or 'Unknown',
+        return create_remote_transaction(
             charge_point=charge_point,
             connector_id=connector_id,
-            external_id=validated_data.get('external_id'),
-            status=TransactionStatus.initialized.value,
+            **validated_data,
         )
-
-        remote_start_transaction_task.delay(transaction.transaction_id)
-
-        return transaction

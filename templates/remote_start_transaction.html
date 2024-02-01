@@ -1,0 +1,64 @@
+{% extends "admin/base_site.html" %}
+{% load i18n admin_urls static admin_list %}
+
+{% block extrastyle %}
+    {{ block.super }}
+    <link rel="stylesheet" type="text/css" href="{% static "admin/css/forms.css" %}"/>
+{% endblock %}
+
+{% block extrahead %}
+    <script type="text/javascript" src="{% static "admin/js/vendor/jquery/jquery.js" %}"></script>
+    <script type="text/javascript" src="{% static "admin/js/jquery.init.js" %}"></script>
+{% endblock %}
+
+{% block breadcrumbs %}
+    <div class="breadcrumbs">
+        <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a> &rsaquo; {{ title }}
+    </div>
+{% endblock %}
+
+{% block content %}
+    <div id="content-main">
+        <form method="post">
+            {% csrf_token %}
+
+            {{ form.media }}
+
+            {% if form.non_field_errors %}
+                <p class="errornote">
+                    {% for error in form.non_field_errors %}
+                        {{ error }}
+                    {% endfor %}
+                </p>
+            {% endif %}
+
+            <fieldset class="module aligned">
+                {% include 'snippets/field.html' with field=form.charge_point %}
+            </fieldset>
+
+            <fieldset class="module aligned">
+                {% include 'snippets/field.html' with field=form.connector_id %}
+            </fieldset>
+
+            <fieldset class="module aligned">
+                {% include 'snippets/field.html' with field=form.vehicle %}
+            </fieldset>
+
+            <fieldset class="module aligned">
+                {% include 'snippets/field.html' with field=form.address %}
+            </fieldset>
+
+            <fieldset class="module aligned">
+                {% include 'snippets/field.html' with field=form.city %}
+            </fieldset>
+
+            <fieldset class="module aligned">
+                {% include 'snippets/field.html' with field=form.external_id %}
+            </fieldset>
+
+            <div class="submit-row">
+                <input type="submit" class="default" value="Submit">
+            </div>
+        </form>
+    </div>
+{% endblock %}

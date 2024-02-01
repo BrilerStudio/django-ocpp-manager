@@ -1,5 +1,7 @@
 from admin_auto_filters.filters import AutocompleteFilterFactory
 from django.contrib import admin
+from django.http import HttpResponseRedirect
+from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from djangoql.admin import DjangoQLSearchMixin
 
@@ -183,6 +185,22 @@ class ChargePointAdmin(DjangoQLSearchMixin, admin.ModelAdmin):
     def get_meter_value_raw(self, obj: models.ChargePoint):
         if obj.connectors:
             return pretty_json_html(obj.connectors)
+
+    actions = ['remote_start_transaction']
+
+    @admin.action(description='Remote start transaction')
+    def remote_start_transaction(self, request, queryset):
+        if queryset.count() != 1:
+            self.message_user(
+                request, 'Please select exactly one charge point to start remote transaction.', level='error'
+            )
+        else:
+            charge_point = queryset.first()
+            charge_point_url = reverse(
+                'manager:remote-start-transaction'
+            )
+            charge_point_url = f'{charge_point_url}?charge_point={charge_point.pk}'
+            return HttpResponseRedirect(charge_point_url)
 
 
 @admin.register(models.Transaction)
