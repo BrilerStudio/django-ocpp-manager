@@ -1,3 +1,4 @@
+import traceback
 from copy import deepcopy
 from functools import wraps
 from typing import Callable, Union
@@ -7,6 +8,7 @@ from ocpp.v16.enums import Action, ChargePointStatus
 
 from app.fields import ConnectionStatus
 from app.queue.publisher import publish
+from manager.audit_logs import audit_log
 from manager.models import ChargePoint
 from manager.ocpp_events.authorize import AuthorizeEvent
 from manager.ocpp_events.base import BaseEvent
@@ -68,39 +70,59 @@ async def process_event(
             MeterValuesEvent,
         ],
 ) -> BaseEvent | None:
-    task = None
+    charge_point = await ChargePoint.objects.aget(charge_point_id=event.charge_point_id)
+    charge_point.last_seen_at = timezone.now()
+    await charge_point.asave()
 
-    if event.action is Action.MeterValues:
-        task = await process_meter_values(deepcopy(event))
-    if event.action is Action.StopTransaction:
-        task = await process_stop_transaction(deepcopy(event))
-        event.transaction_id = event.payload.transaction_id
-    if event.action is Action.StartTransaction:
-        task = await process_start_transaction(deepcopy(event))
-        event.transaction_id = task.transaction_id
-    if event.action is Action.Authorize:
-        task = await process_authorize(deepcopy(event))
-    if event.action is Action.SecurityEventNotification:
-        task = await process_security_event_notification(deepcopy(event))
-    if event.action is Action.BootNotification:
-        task = await process_boot_notification(deepcopy(event))
-    if event.action is Action.StatusNotification:
-        task = await process_status_notification(deepcopy(event))
-    if event.action is Action.Heartbeat:
-        task = await process_heartbeat(deepcopy(event))
-
-    if event.action is ConnectionStatus.LOST_CONNECTION:
-        await ChargePoint.objects.filter(charge_point_id=event.charge_point_id).aupdate(
-            status=ChargePointStatus.unavailable,
-        )
-
-    await ChargePoint.objects.filter(charge_point_id=event.charge_point_id).aupdate(
-        last_seen_at=timezone.now(),
+    await audit_log(
+        charge_point=charge_point,
+        action=f'Received {event.action} {event.message_id or ""}'.strip(),
+        data=event.model_dump(),
     )
 
-    if task:
-        await publish(task.model_dump_json(), to=task.exchange, priority=task.priority)
+    try:
+        task = None
 
-    logger.info(f'Successfully completed process event={event}')
+        if event.action is Action.MeterValues:
+            task = await process_meter_values(deepcopy(event))
+        if event.action is Action.StopTransaction:
+            task = await process_stop_transaction(deepcopy(event))
+            event.transaction_id = event.payload.transaction_id
+        if event.action is Action.StartTransaction:
+            task = await process_start_transaction(deepcopy(event))
+            event.transaction_id = task.transaction_id
+        if event.action is Action.Authorize:
+            task = await process_authorize(deepcopy(event))
+        if event.action is Action.SecurityEventNotification:
+            task = await process_security_event_notification(deepcopy(event))
+        if event.action is Action.BootNotification:
+            task = await process_boot_notification(deepcopy(event))
+        if event.action is Action.StatusNotification:
+            task = await process_status_notification(deepcopy(event))
+        if event.action is Action.Heartbeat:
+            task = await process_heartbeat(deepcopy(event))
 
-    return event
+        if event.action is ConnectionStatus.LOST_CONNECTION:
+            await ChargePoint.objects.filter(charge_point_id=event.charge_point_id).aupdate(
+                status=ChargePointStatus.unavailable,
+            )
+
+        if task:
+            await publish(task.model_dump_json(), to=task.exchange, priority=task.priority)
+            await audit_log(
+                charge_point=charge_point,
+                action=f'Sent response {task.action} {event.message_id or ""}'.strip(),
+                data=task.model_dump(),
+            )
+
+        logger.info(f'Successfully completed process event={event}')
+
+        return event
+    except Exception as e:
+        logger.exception(e)
+        full_trace = traceback.format_exc()
+        await audit_log(
+            charge_point=charge_point,
+            action=f'Error during process event {event.action} {event.message_id or ""}'.strip(),
+            data=full_trace,
+        )

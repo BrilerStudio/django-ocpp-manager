@@ -5,10 +5,11 @@ from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
 from djangoql.admin import DjangoQLSearchMixin
 
+from manager.tasks import remote_start_transaction_task
 from utils.helpers import pretty_json_html
 from . import models
 from .forms import ChargePointAdminForm
-from manager.tasks import remote_start_transaction_task
+
 
 @admin.register(models.Location)
 class LocationAdmin(DjangoQLSearchMixin, admin.ModelAdmin):
@@ -362,3 +363,47 @@ class TransactionAdmin(DjangoQLSearchMixin, admin.ModelAdmin):
             self.message_user(
                 request, 'Request was sent again.', level='info'
             )
+
+
+@admin.register(models.AuditLog)
+class AuditLogAdmin(admin.ModelAdmin):
+    list_display = (
+        'created_at',
+        'action',
+        'charge_point',
+        'get_data',
+    )
+
+    list_filter = (
+        'action',
+    )
+
+    list_select_related = (
+        'charge_point',
+    )
+
+    search_fields = ('charge_point',)
+
+    ordering = ('-created_at',)
+
+    readonly_fields = (
+        'id',
+        'created_at',
+        'action',
+        'charge_point',
+        'get_data',
+    )
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_add_permission(self, request):
+        return False
+
+    @admin.display(description='Data')
+    def get_data(self, obj: models.AuditLog):
+        if obj.data:
+            return pretty_json_html(obj.data)

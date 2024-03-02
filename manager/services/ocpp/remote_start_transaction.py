@@ -2,6 +2,7 @@ import uuid
 
 from app.queue.publisher import publish
 from app.settings import REGULAR_MESSAGE_PRIORITY
+from manager.audit_logs import audit_log
 from manager.models import Transaction, TransactionStatus
 from manager.ocpp_models.tasks.remote_start_transaction import RemoteStartTransactionTask
 from utils.logging import logger
@@ -28,3 +29,8 @@ async def remote_start_transaction(
     )
 
     await publish(task.model_dump_json(), to=task.exchange, priority=task.priority)
+    await audit_log(
+        charge_point=transaction.charge_point,
+        action=f'Send request {task.action} {task.message_id or ""}'.strip(),
+        data=task.model_dump(),
+    )

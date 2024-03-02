@@ -1,6 +1,6 @@
 from enum import StrEnum
 
-from django.contrib.auth.hashers import check_password
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 from ocpp.v16.enums import ChargePointStatus
@@ -158,7 +158,8 @@ class ChargePoint(models.Model):
     def is_available(self, connector_id: int = 0):
         if connector_id:
             connector = self.connectors.get(str(connector_id), {})
-            return connector.get('status') in [ChargePointStatus.available, ChargePointStatus.preparing, ChargePointStatus.finishing]
+            return connector.get('status') in [ChargePointStatus.available, ChargePointStatus.preparing,
+                                               ChargePointStatus.finishing]
         return self.status == ChargePointStatus.available
 
     def check_password(self, password):
@@ -264,3 +265,41 @@ class Transaction(models.Model):
 
     def __str__(self):
         return f'Transaction {self.transaction_id}'
+
+
+class AuditLog(models.Model):
+    class Meta:
+        verbose_name = 'Audit Log'
+        verbose_name_plural = 'Audit Logs'
+
+    created_at = models.DateTimeField(
+        auto_now_add=True,
+        editable=False,
+        verbose_name='Created',
+    )
+
+    action = models.CharField(
+        max_length=80,
+        null=False,
+        db_index=True,
+        editable=False,
+        verbose_name='Action',
+    )
+
+    data = models.JSONField(
+        default=dict,
+        editable=False,
+        null=True,
+        blank=True,
+    )
+
+    charge_point = models.ForeignKey(
+        ChargePoint,
+        on_delete=models.CASCADE,
+        related_name='audit_logs',
+        null=True,
+        blank=True,
+    )
+
+    def __str__(self):
+        return f'[{self.created_at}] {self.action}'
