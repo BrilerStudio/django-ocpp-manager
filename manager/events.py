@@ -76,7 +76,8 @@ async def process_event(
 
     await audit_log(
         charge_point=charge_point,
-        action=f'Received {event.action} {event.message_id or ""}'.strip(),
+        action=event.action,
+        action_type='received',
         data=event.model_dump(),
     )
 
@@ -111,7 +112,8 @@ async def process_event(
             await publish(task.model_dump_json(), to=task.exchange, priority=task.priority)
             await audit_log(
                 charge_point=charge_point,
-                action=f'Sent response {task.action} {event.message_id or ""}'.strip(),
+                action=task.action,
+                action_type='respond',
                 data=task.model_dump(),
             )
 
@@ -123,6 +125,11 @@ async def process_event(
         full_trace = traceback.format_exc()
         await audit_log(
             charge_point=charge_point,
-            action=f'Error during process event {event.action} {event.message_id or ""}'.strip(),
-            data=full_trace,
+            action=event.action,
+            action_type='error',
+            data={
+                'error': str(e),
+                'traceback': full_trace,
+                'event': event.model_dump(),
+            }
         )

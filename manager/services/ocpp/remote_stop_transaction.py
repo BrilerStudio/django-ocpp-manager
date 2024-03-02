@@ -30,6 +30,7 @@ async def remote_stop_transaction(
     await publish(task.model_dump_json(), to=task.exchange, priority=task.priority)
     await audit_log(
         charge_point=transaction.charge_point,
-        action=f'Send request {task.action} {task.message_id or ""}'.strip(),
+        action=task.action,
+        action_type='sent',
         data=task.model_dump(),
     )

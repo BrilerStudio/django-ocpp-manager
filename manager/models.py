@@ -286,6 +286,15 @@ class AuditLog(models.Model):
         verbose_name='Action',
     )
 
+    action_type = models.CharField(
+        max_length=80,
+        null=True,
+        blank=True,
+        db_index=True,
+        editable=False,
+        verbose_name='Type',
+    )
+
     data = models.JSONField(
         default=dict,
         editable=False,

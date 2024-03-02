@@ -360,9 +360,12 @@ class TransactionAdmin(DjangoQLSearchMixin, admin.ModelAdmin):
         else:
             transaction = queryset.first()
             remote_start_transaction_task.delay(transaction.transaction_id)
-            self.message_user(
-                request, 'Request was sent again.', level='info'
+            transaction_url = reverse(
+                'manager:remote-stop-transaction'
             )
+            transaction_url = f'{transaction_url}?transaction={transaction.transaction_id}'
+            return HttpResponseRedirect(transaction_url)
+
 
 
 @admin.register(models.AuditLog)
@@ -370,12 +373,15 @@ class AuditLogAdmin(admin.ModelAdmin):
     list_display = (
         'created_at',
         'action',
+        'action_type',
         'charge_point',
         'get_data',
     )
 
     list_filter = (
         'action',
+        'action_type',
+        'charge_point',
     )
 
     list_select_related = (
@@ -390,6 +396,7 @@ class AuditLogAdmin(admin.ModelAdmin):
         'id',
         'created_at',
         'action',
+        'action_type',
         'charge_point',
         'get_data',
     )
