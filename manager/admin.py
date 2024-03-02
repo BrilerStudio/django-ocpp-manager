@@ -8,7 +8,7 @@ from djangoql.admin import DjangoQLSearchMixin
 from utils.helpers import pretty_json_html
 from . import models
 from .forms import ChargePointAdminForm
-
+from manager.tasks import remote_start_transaction_task
 
 @admin.register(models.Location)
 class LocationAdmin(DjangoQLSearchMixin, admin.ModelAdmin):
@@ -326,7 +326,7 @@ class TransactionAdmin(DjangoQLSearchMixin, admin.ModelAdmin):
     def has_change_permission(self, request, obj=None):
         return False
 
-    actions = ['remote_stop_transaction']
+    actions = ['remote_stop_transaction', 'resend_start_transaction_request']
 
     @admin.action(description='Remote stop transaction')
     def remote_stop_transaction(self, request, queryset):
@@ -349,3 +349,16 @@ class TransactionAdmin(DjangoQLSearchMixin, admin.ModelAdmin):
             )
             transaction_url = f'{transaction_url}?transaction={transaction.transaction_id}'
             return HttpResponseRedirect(transaction_url)
+
+    @admin.action(description='Resend start transaction request')
+    def resend_start_transaction_request(self, request, queryset):
+        if queryset.count() != 1:
+            self.message_user(
+                request, 'Please select exactly one transaction to remote stop it.', level='error'
+            )
+        else:
+            transaction = queryset.first()
+            remote_start_transaction_task.delay(transaction.transaction_id)
+            self.message_user(
+                request, 'Request was sent again.', level='info'
+            )

@@ -158,7 +158,7 @@ class ChargePoint(models.Model):
     def is_available(self, connector_id: int = 0):
         if connector_id:
             connector = self.connectors.get(str(connector_id), {})
-            return connector.get('status') == ChargePointStatus.available
+            return connector.get('status') in [ChargePointStatus.available, ChargePointStatus.preparing, ChargePointStatus.finishing]
         return self.status == ChargePointStatus.available
 
     def check_password(self, password):
