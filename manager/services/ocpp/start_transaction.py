@@ -14,7 +14,6 @@ async def process_start_transaction(
 
     try:
         transaction = await Transaction.objects.aget(
-            connector_id=event.payload.connector_id,
             charge_point=charge_point,
             tag_id=event.payload.id_tag,
             meter_start__isnull=True,

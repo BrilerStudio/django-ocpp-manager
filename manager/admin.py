@@ -276,7 +276,6 @@ class TransactionAdmin(DjangoQLSearchMixin, admin.ModelAdmin):
         'meter_value_raw',
         'meter_stop',
         'charge_point',
-        'connector_id',
         'start_date',
         'end_date',
         'get_meter_value_raw',
